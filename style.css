@@ -1609,7 +1609,7 @@ img {
 #startButton::before,
 #acceptButton::before,
 #nextCustomer::before {
-    content: "âś";
+    conten c "▶";
     margin-right: 10px;
 }
 
