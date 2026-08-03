@@ -19,9 +19,6 @@
    ・フェニちゃんの追加セリフ
    ・お客様退店
    ・次のお客様
-   /* =========================================================
-   Repair Legend Ver2
-   game.js
    ========================================================= */
 
 "use strict";
@@ -540,31 +537,102 @@
 
     function initializeGame() {
 
-        cacheDomElements();
+        try {
 
-        ensureRepairEndInterface();
+            cacheDomElements();
 
-        configureGameLabels();
+            ensureRepairEndInterface();
 
-        if (!validateRequiredSystems()) {
+            configureGameLabels();
+
+            ensureSoundSystem();
+
+            if (!validateRequiredSystems()) {
+
+                throw new Error(
+                    "必要なHTML要素またはquiz.jsの機能が不足しています。"
+                );
+
+            }
+
+            registerEventListeners();
+
+            resetVisualState();
+
+            updateHud();
+
+            if (
+                typeof RepairLegendQuiz.createQuestionDeck ===
+                "function"
+            ) {
+
+                RepairLegendQuiz.createQuestionDeck(true);
+
+            }
+
+            setPhase(GAME_PHASE.TITLE);
+
+            console.log(
+                "Repair Legend Game: 初期化完了"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Repair Legend 初期化エラー:",
+                error
+            );
+
+            const startButton =
+                document.getElementById("startButton");
+
+            if (startButton) {
+
+                startButton.disabled = false;
+
+                startButton.addEventListener(
+                    "click",
+                    function () {
+
+                        alert(
+                            "ゲームの読み込みに失敗しました。quiz.jsの内容またはファイル名を確認してください。"
+                        );
+
+                    },
+                    { once: true }
+                );
+
+            }
+
+        }
+
+    }
+
+
+    function ensureSoundSystem() {
+
+        if (window.RepairLegendSound) {
 
             return;
 
         }
 
-        registerEventListeners();
-
-        resetVisualState();
-
-        updateHud();
-
-        RepairLegendQuiz.createQuestionDeck(true);
-
-        setPhase(GAME_PHASE.TITLE);
-
-        console.log(
-            "Repair Legend Game: 初期化完了"
+        console.warn(
+            "Repair Legend: sound.jsを読み込めないため、無音モードで起動します。"
         );
+
+        window.RepairLegendSound = Object.freeze({
+            unlockAudio: async function () {},
+            playBgm: function () {},
+            pauseBgm: function () {},
+            playBell: function () {},
+            playCorrect: function () {},
+            playWrong: function () {},
+            playCoin: function () {},
+            playComboCoin: function () {},
+            playRepairComplete: function () {},
+            playRepairEnd: function () {}
+        });
 
     }
 
@@ -1117,16 +1185,6 @@
 
         }
 
-        if (!window.RepairLegendSound) {
-
-            console.error(
-                "Repair Legend: sound.jsが読み込まれていません。"
-            );
-
-            return false;
-
-        }
-
         if (dom.answerButtons.length !== 4) {
 
             console.error(
@@ -1217,22 +1275,74 @@
 
         gameState.sequenceId += 1;
 
-        await RepairLegendSound.unlockAudio();
+        dom.startScreen.classList.add(
+            "hidden"
+        );
 
-        RepairLegendSound.playBgm({
-            restart: true,
-            fadeIn: true
-        });
+        try {
 
-        dom.startScreen.classList.add("hidden");
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.unlockAudio ===
+                    "function"
+            ) {
 
-        await wait(500);
+                await RepairLegendSound.unlockAudio();
 
-        resetGameProgress();
+            }
 
-        gameState.processing = false;
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.playBgm ===
+                    "function"
+            ) {
 
-        startNextCustomer();
+                RepairLegendSound.playBgm({
+                    restart: true,
+                    fadeIn: true
+                });
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "音声の開始に失敗しました。無音でゲームを続行します。",
+                error
+            );
+
+        }
+
+        await wait(350);
+
+        try {
+
+            resetGameProgress();
+
+            gameState.processing = false;
+
+            startNextCustomer();
+
+        } catch (error) {
+
+            console.error(
+                "ゲーム開始エラー:",
+                error
+            );
+
+            gameState.started = false;
+
+            gameState.processing = false;
+
+            dom.startScreen.classList.remove(
+                "hidden"
+            );
+
+            alert(
+                "ゲームを開始できませんでした。quiz.jsの内容を確認してください。"
+            );
+
+        }
 
     }
 
@@ -1281,9 +1391,23 @@
 
         gameState.lastCustomerId = null;
 
-        RepairLegendQuiz.resetQuestionDeck();
+        if (
+            typeof RepairLegendQuiz.resetQuestionDeck ===
+            "function"
+        ) {
 
-        RepairLegendQuiz.createQuestionDeck(true);
+            RepairLegendQuiz.resetQuestionDeck();
+
+        }
+
+        if (
+            typeof RepairLegendQuiz.createQuestionDeck ===
+            "function"
+        ) {
+
+            RepairLegendQuiz.createQuestionDeck(true);
+
+        }
 
         resetVisualState();
 
