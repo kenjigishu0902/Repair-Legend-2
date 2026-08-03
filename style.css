@@ -2791,3 +2791,7 @@ img {
         animation-iteration-count: 1 !important;
     }
 }
+#question {
+    white-space: pre-line;
+    align-items: flex-start;
+}

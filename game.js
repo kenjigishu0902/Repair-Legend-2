@@ -1876,8 +1876,13 @@
         dom.category.textContent =
             question.category;
 
-        dom.question.textContent =
-            question.question;
+        const symptomText =
+    question.symptom
+        ? question.symptom
+        : "症状情報なし";
+
+dom.question.textContent =
+    `【症状】${symptomText}\n【問題】${question.question}`;
 
         dom.answerButtons.forEach(
             function (button, index) {
