@@ -1287,7 +1287,38 @@
                     "function"
             ) {
 
-                await RepairLegendSound.unlockAudio();
+                try {
+
+                    const unlockResult =
+                        RepairLegendSound.unlockAudio();
+
+                    if (
+                        unlockResult &&
+                        typeof unlockResult.catch ===
+                            "function"
+                    ) {
+
+                        unlockResult.catch(
+                            function (error) {
+
+                                console.warn(
+                                    "音声解除に失敗しました。無音で続行します。",
+                                    error
+                                );
+
+                            }
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    console.warn(
+                        "音声解除に失敗しました。無音で続行します。",
+                        error
+                    );
+
+                }
 
             }
 
@@ -1483,7 +1514,8 @@
 
                 if (
                     bellResult &&
-                    typeof bellResult.catch === "function"
+                    typeof bellResult.catch ===
+                        "function"
                 ) {
 
                     bellResult.catch(
