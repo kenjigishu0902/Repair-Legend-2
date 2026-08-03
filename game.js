@@ -1464,9 +1464,33 @@
 
         }
 
-        RepairLegendSound.playBell();
-
+        /*
+           お客様の表示を先に開始する。
+           ベル音のファイルが無い・再生に失敗した場合でも、
+           来店処理とゲーム進行を止めない。
+        */
         dom.customer.classList.add("walking");
+
+        try {
+
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.playBell ===
+                    "function"
+            ) {
+
+                RepairLegendSound.playBell();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "ベル音を再生できませんでした。ゲームは継続します。",
+                error
+            );
+
+        }
 
         await wait(
             GAME_CONFIG.customerEnterDuration
