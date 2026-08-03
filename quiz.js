@@ -15,7 +15,7 @@
 
 (function () {
     const QUIZ_PLATFORMS = Object.freeze({
-        IPHONE: "iPhone",
+        IPHONE: "iPhone",　
         ANDROID: "Android",
         SWITCH: "Switch",
         REPAIR: "修理知識"
