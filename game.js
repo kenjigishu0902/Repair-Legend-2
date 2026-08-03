@@ -1321,7 +1321,7 @@
 
             gameState.processing = false;
 
-            startNextCustomer();
+            await startNextCustomer();
 
         } catch (error) {
 
@@ -1409,7 +1409,9 @@
 
         }
 
-        resetVisualState();
+        resetVisualState({
+            keepStartHidden: true
+        });
 
         updateHud();
 
@@ -1464,11 +1466,8 @@
 
         }
 
-        /*
-           お客様の表示を先に開始する。
-           ベル音のファイルが無い・再生に失敗した場合でも、
-           来店処理とゲーム進行を止めない。
-        */
+        dom.customer.style.opacity = "1";
+        dom.customer.style.visibility = "visible";
         dom.customer.classList.add("walking");
 
         try {
@@ -1479,7 +1478,26 @@
                     "function"
             ) {
 
-                RepairLegendSound.playBell();
+                const bellResult =
+                    RepairLegendSound.playBell();
+
+                if (
+                    bellResult &&
+                    typeof bellResult.catch === "function"
+                ) {
+
+                    bellResult.catch(
+                        function (error) {
+
+                            console.warn(
+                                "ベル音を再生できませんでした。ゲームは継続します。",
+                                error
+                            );
+
+                        }
+                    );
+
+                }
 
             }
 
@@ -1503,6 +1521,10 @@
         }
 
         dom.customer.classList.remove("walking");
+
+        dom.customer.style.opacity = "1";
+        dom.customer.style.visibility = "visible";
+        dom.customer.style.transform = "translateX(0)";
 
         dom.customer.classList.add("waiting");
 
@@ -1622,6 +1644,10 @@
 
         dom.customer.className =
             "customer-large";
+
+        dom.customer.style.opacity = "";
+        dom.customer.style.visibility = "";
+        dom.customer.style.transform = "";
 
         void dom.customer.offsetWidth;
 
@@ -3335,11 +3361,18 @@
        VISUAL RESET
        ===================================================== */
 
-    function resetVisualState() {
+    function resetVisualState(options = {}) {
 
-        dom.startScreen.classList.remove(
-            "hidden"
-        );
+        const keepStartHidden =
+            Boolean(options.keepStartHidden);
+
+        if (!keepStartHidden) {
+
+            dom.startScreen.classList.remove(
+                "hidden"
+            );
+
+        }
 
         hideReceptionWindow();
 
