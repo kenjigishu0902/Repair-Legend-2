@@ -1,4 +1,3 @@
-
 /* =========================================================
    Repair Legend Ver2
    quiz.js - 100問統合・構文修正版
@@ -9,13 +8,13 @@
    ・難易度1〜5対応
    ・game.jsのcategory指定とplatform指定に対応
    ・getQuestionById / checkAnswer対応
-   ========================================================= */　
+   ========================================================= */
 
 "use strict";
 
 (function () {
     const QUIZ_PLATFORMS = Object.freeze({
-        IPHONE: "iPhone",　
+        IPHONE: "iPhone",
         ANDROID: "Android",
         SWITCH: "Switch",
         REPAIR: "修理知識"
