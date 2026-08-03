@@ -1,0 +1,2096 @@
+/* =========================================================
+   Repair Legend Ver2
+   sound.js
+
+   役割
+   ・BGM管理
+   ・効果音管理
+   ・iPhone / iPadの音声再生制限への対応
+   ・ミュート管理
+   ・音量管理
+   ・連続再生対応
+   ・game.js向け共通API
+   ========================================================= */
+
+"use strict";
+
+(function () {
+
+    /* =====================================================
+       CONSTANTS
+       ===================================================== */
+
+    const STORAGE_KEYS = Object.freeze({
+        MUTED: "repairLegendMuted",
+        BGM_VOLUME: "repairLegendBgmVolume",
+        SE_VOLUME: "repairLegendSeVolume"
+    });
+
+    const DEFAULT_VOLUMES = Object.freeze({
+        BGM: 0.28,
+        SE: 0.72
+    });
+
+    const SOUND_IDS = Object.freeze({
+        BGM: "bgm",
+        TITLE_BGM: "titleBgm",
+        TAP: "tapSound",
+        BELL: "bellSound",
+        CORRECT: "correctSound",
+        WRONG: "wrongSound",
+        REPAIR: "repairSound",
+        COIN: "coinSound",
+        GAUGE_FULL: "gaugeFullSound",
+        REPAIR_END: "repairEndSound"
+    });
+
+
+    /* =====================================================
+       INTERNAL STATE
+       ===================================================== */
+
+    let initialized = false;
+    let audioUnlocked = false;
+    let muted = false;
+
+    let bgmVolume = DEFAULT_VOLUMES.BGM;
+    let seVolume = DEFAULT_VOLUMES.SE;
+
+    let bgmAudio = null;
+    let titleBgmAudio = null;
+    let currentBgmAudio = null;
+    let webAudioContext = null;
+    let unlockPromise = null;
+    let gaugeObserver = null;
+    let observedRepairEndPanel = null;
+    let repairEndGaugeWasReady = false;
+
+    const soundElements = {
+        tap: null,
+        bell: null,
+        correct: null,
+        wrong: null,
+        repair: null,
+        coin: null,
+        gaugeFull: null,
+        repairEnd: null
+    };
+
+    const activeClones = new Set();
+
+
+    /* =====================================================
+       STORAGE
+       ===================================================== */
+
+    /**
+     * localStorageから設定を読み込む
+     */
+    function loadSettings() {
+
+        try {
+
+            const storedMuted = localStorage.getItem(
+                STORAGE_KEYS.MUTED
+            );
+
+            const storedBgmVolume = localStorage.getItem(
+                STORAGE_KEYS.BGM_VOLUME
+            );
+
+            const storedSeVolume = localStorage.getItem(
+                STORAGE_KEYS.SE_VOLUME
+            );
+
+            if (storedMuted !== null) {
+
+                muted = storedMuted === "true";
+
+            }
+
+            if (storedBgmVolume !== null) {
+
+                bgmVolume = clampVolume(
+                    Number(storedBgmVolume)
+                );
+
+            }
+
+            if (storedSeVolume !== null) {
+
+                seVolume = clampVolume(
+                    Number(storedSeVolume)
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "サウンド設定の読み込みに失敗しました。",
+                error
+            );
+
+        }
+
+    }
+
+
+    /**
+     * localStorageへ設定を保存する
+     */
+    function saveSettings() {
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_KEYS.MUTED,
+                String(muted)
+            );
+
+            localStorage.setItem(
+                STORAGE_KEYS.BGM_VOLUME,
+                String(bgmVolume)
+            );
+
+            localStorage.setItem(
+                STORAGE_KEYS.SE_VOLUME,
+                String(seVolume)
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "サウンド設定の保存に失敗しました。",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       UTILITY
+       ===================================================== */
+
+    /**
+     * 音量を0〜1へ制限する
+     *
+     * @param {number} value
+     * @returns {number}
+     */
+    function clampVolume(value) {
+
+        if (!Number.isFinite(value)) {
+
+            return 0;
+
+        }
+
+        return Math.min(
+            1,
+            Math.max(0, value)
+        );
+
+    }
+
+
+    /**
+     * DOMから音声要素を取得する
+     *
+     * @param {string} id
+     * @returns {HTMLAudioElement|null}
+     */
+    function getAudioElement(id) {
+
+        const element = document.getElementById(id);
+
+        if (!(element instanceof HTMLAudioElement)) {
+
+            console.warn(
+                `audio要素 #${id} が見つかりません。`
+            );
+
+            return null;
+
+        }
+
+        return element;
+
+    }
+
+
+    /**
+     * 任意のaudio要素を取得する。
+     * 新規効果音がHTMLに未追加でも警告を出さず、
+     * Web Audioの代替音へ切り替えられるようにする。
+     *
+     * @param {string} id
+     * @returns {HTMLAudioElement|null}
+     */
+    function getOptionalAudioElement(id) {
+
+        const element = document.getElementById(id);
+
+        return element instanceof HTMLAudioElement
+            ? element
+            : null;
+
+    }
+
+
+    /**
+     * Web Audio APIのAudioContextを取得する。
+     * iPhone / iPad Safariではユーザー操作後にresumeする。
+     *
+     * @returns {AudioContext|null}
+     */
+    function getWebAudioContext() {
+
+        if (webAudioContext) {
+
+            return webAudioContext;
+
+        }
+
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+
+            return null;
+
+        }
+
+        try {
+
+            webAudioContext =
+                new AudioContextClass();
+
+        } catch (error) {
+
+            console.warn(
+                "Web Audioの初期化に失敗しました。",
+                error
+            );
+
+            return null;
+
+        }
+
+        return webAudioContext;
+
+    }
+
+
+    /**
+     * AudioContextを再開する。
+     *
+     * @returns {Promise<boolean>}
+     */
+    async function resumeWebAudioContext() {
+
+        const context = getWebAudioContext();
+
+        if (!context) {
+
+            return false;
+
+        }
+
+        try {
+
+            if (context.state === "suspended") {
+
+                await context.resume();
+
+            }
+
+            return context.state === "running";
+
+        } catch (error) {
+
+            return false;
+
+        }
+
+    }
+
+
+    /**
+     * Promiseエラーを安全に処理する
+     *
+     * @param {Promise|undefined} playPromise
+     */
+    function handlePlayPromise(playPromise) {
+
+        if (
+            playPromise &&
+            typeof playPromise.catch === "function"
+        ) {
+
+            playPromise.catch(
+                function (error) {
+
+                    if (
+                        error &&
+                        error.name !== "AbortError" &&
+                        error.name !== "NotAllowedError"
+                    ) {
+
+                        console.warn(
+                            "音声再生に失敗しました。",
+                            error
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+    }
+
+
+    /**
+     * 音声要素の再生位置を安全に戻す
+     *
+     * @param {HTMLAudioElement} audio
+     */
+    function resetAudioTime(audio) {
+
+        if (!audio) {
+
+            return;
+
+        }
+
+        try {
+
+            audio.currentTime = 0;
+
+        } catch (error) {
+
+            /*
+             * 音声ファイルがまだ読み込まれていない場合は
+             * currentTime変更に失敗することがあります。
+             */
+
+        }
+
+    }
+
+
+    /* =====================================================
+       INITIALIZATION
+       ===================================================== */
+
+    /**
+     * サウンドシステムを初期化する
+     *
+     * @returns {boolean}
+     */
+    function initialize() {
+
+        if (initialized) {
+
+            return true;
+
+        }
+
+        loadSettings();
+
+        bgmAudio = getAudioElement(
+            SOUND_IDS.BGM
+        );
+
+        titleBgmAudio = getOptionalAudioElement(
+            SOUND_IDS.TITLE_BGM
+        );
+
+        currentBgmAudio = bgmAudio;
+
+        soundElements.tap = getAudioElement(
+            SOUND_IDS.TAP
+        );
+
+        soundElements.bell = getAudioElement(
+            SOUND_IDS.BELL
+        );
+
+        soundElements.correct = getAudioElement(
+            SOUND_IDS.CORRECT
+        );
+
+        soundElements.wrong = getAudioElement(
+            SOUND_IDS.WRONG
+        );
+
+        soundElements.repair = getAudioElement(
+            SOUND_IDS.REPAIR
+        );
+
+        soundElements.coin = getAudioElement(
+            SOUND_IDS.COIN
+        );
+
+        soundElements.gaugeFull =
+            getOptionalAudioElement(
+                SOUND_IDS.GAUGE_FULL
+            );
+
+        soundElements.repairEnd =
+            getOptionalAudioElement(
+                SOUND_IDS.REPAIR_END
+            );
+
+        configureAudioElements();
+
+        registerUnlockEvents();
+        registerRepairEndGaugeObserver();
+
+        initialized = true;
+
+        console.log(
+            "Repair Legend Sound: 初期化完了"
+        );
+
+        return true;
+
+    }
+
+
+    /**
+     * 音声要素へ初期設定を適用する
+     */
+    function configureAudioElements() {
+
+        if (bgmAudio) {
+
+            bgmAudio.loop = true;
+            bgmAudio.preload = "auto";
+            bgmAudio.volume = muted ? 0 : bgmVolume;
+
+            bgmAudio.setAttribute(
+                "playsinline",
+                ""
+            );
+
+            bgmAudio.setAttribute(
+                "webkit-playsinline",
+                ""
+            );
+
+        }
+
+        if (titleBgmAudio) {
+
+            titleBgmAudio.loop = true;
+            titleBgmAudio.preload = "auto";
+            titleBgmAudio.volume =
+                muted ? 0 : bgmVolume * 0.82;
+
+            titleBgmAudio.setAttribute(
+                "playsinline",
+                ""
+            );
+
+            titleBgmAudio.setAttribute(
+                "webkit-playsinline",
+                ""
+            );
+
+        }
+
+        Object.values(soundElements).forEach(
+            function (audio) {
+
+                if (!audio) {
+
+                    return;
+
+                }
+
+                audio.preload = "auto";
+                audio.volume = muted ? 0 : seVolume;
+
+                audio.setAttribute(
+                    "playsinline",
+                    ""
+                );
+
+                audio.setAttribute(
+                    "webkit-playsinline",
+                    ""
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       AUDIO UNLOCK
+       iPhone / iPad対応
+       ===================================================== */
+
+    /**
+     * ユーザー操作時に音声を解放するイベントを登録する
+     */
+    function registerUnlockEvents() {
+
+        const unlockOptions = {
+            once: true,
+            passive: true
+        };
+
+        document.addEventListener(
+            "touchstart",
+            unlockAudio,
+            unlockOptions
+        );
+
+        document.addEventListener(
+            "pointerdown",
+            unlockAudio,
+            unlockOptions
+        );
+
+        document.addEventListener(
+            "keydown",
+            unlockAudio,
+            {
+                once: true
+            }
+        );
+
+    }
+
+
+    /**
+     * iOSの音声再生制限を解除する
+     *
+     * @returns {Promise<boolean>}
+     */
+    async function unlockAudio() {
+
+        if (audioUnlocked) {
+
+            await resumeWebAudioContext();
+
+            return true;
+
+        }
+
+        if (unlockPromise) {
+
+            return unlockPromise;
+
+        }
+
+        unlockPromise = (async function () {
+
+            if (!initialized) {
+
+                initialize();
+
+            }
+
+            await resumeWebAudioContext();
+
+            const audioList = [
+                bgmAudio,
+                titleBgmAudio,
+                ...Object.values(soundElements)
+            ].filter(Boolean);
+
+            for (const audio of audioList) {
+
+                try {
+
+                    const originalVolume = audio.volume;
+                    const originalMuted = audio.muted;
+                    const originalLoop = audio.loop;
+
+                    audio.muted = true;
+                    audio.volume = 0;
+                    audio.loop = false;
+
+                    const playPromise = audio.play();
+
+                    if (
+                        playPromise &&
+                        typeof playPromise.then === "function"
+                    ) {
+
+                        await playPromise;
+
+                    }
+
+                    audio.pause();
+                    resetAudioTime(audio);
+
+                    audio.muted = originalMuted;
+                    audio.volume = originalVolume;
+                    audio.loop = originalLoop;
+
+                } catch (error) {
+
+                    /*
+                     * ファイルが未配置の任意音源やブラウザ差により、
+                     * 一部だけ解放できない場合があります。
+                     */
+
+                }
+
+            }
+
+            audioUnlocked = true;
+
+            applyVolumes();
+
+            return true;
+
+        })();
+
+        try {
+
+            return await unlockPromise;
+
+        } finally {
+
+            unlockPromise = null;
+
+        }
+
+    }
+
+
+    /* =====================================================
+       BGM
+       ===================================================== */
+
+    /**
+     * BGMを再生する
+     *
+     * @param {Object} options
+     * @param {boolean} options.restart
+     * @param {boolean} options.fadeIn
+     * @param {number} options.fadeDuration
+     * @returns {Promise<boolean>}
+     */
+    async function playBgm(options = {}) {
+
+        const {
+            restart = false,
+            fadeIn = true,
+            fadeDuration = 700
+        } = options;
+
+        if (!initialized) {
+
+            initialize();
+
+        }
+
+        if (!bgmAudio) {
+
+            return false;
+
+        }
+
+        if (titleBgmAudio && titleBgmAudio !== bgmAudio) {
+
+            titleBgmAudio.pause();
+
+        }
+
+        currentBgmAudio = bgmAudio;
+
+        if (muted) {
+
+            return false;
+
+        }
+
+        if (!audioUnlocked) {
+
+            await unlockAudio();
+
+        }
+
+        if (restart) {
+
+            resetAudioTime(bgmAudio);
+
+        }
+
+        bgmAudio.loop = true;
+
+        if (fadeIn) {
+
+            bgmAudio.volume = 0;
+
+        } else {
+
+            bgmAudio.volume = bgmVolume;
+
+        }
+
+        try {
+
+            await bgmAudio.play();
+
+            if (fadeIn) {
+
+                fadeAudioVolume(
+                    bgmAudio,
+                    bgmVolume,
+                    fadeDuration
+                );
+
+            }
+
+            return true;
+
+        } catch (error) {
+
+            if (
+                error &&
+                error.name !== "NotAllowedError"
+            ) {
+
+                console.warn(
+                    "BGMの再生に失敗しました。",
+                    error
+                );
+
+            }
+
+            return false;
+
+        }
+
+    }
+
+
+    /**
+     * タイトル画面用BGMを再生する。
+     * #titleBgm が無い場合は通常BGMを低めの音量で使用する。
+     *
+     * @param {Object} options
+     * @returns {Promise<boolean>}
+     */
+    async function playTitleBgm(options = {}) {
+
+        const {
+            restart = false,
+            fadeIn = true,
+            fadeDuration = 600
+        } = options;
+
+        if (!initialized) {
+
+            initialize();
+
+        }
+
+        const targetAudio =
+            titleBgmAudio || bgmAudio;
+
+        if (!targetAudio || muted) {
+
+            return false;
+
+        }
+
+        if (!audioUnlocked) {
+
+            await unlockAudio();
+
+        }
+
+        if (bgmAudio && targetAudio !== bgmAudio) {
+
+            bgmAudio.pause();
+
+        }
+
+        currentBgmAudio = targetAudio;
+        targetAudio.loop = true;
+
+        if (restart) {
+
+            resetAudioTime(targetAudio);
+
+        }
+
+        const titleVolume =
+            clampVolume(bgmVolume * 0.82);
+
+        targetAudio.volume = fadeIn
+            ? 0
+            : titleVolume;
+
+        try {
+
+            await targetAudio.play();
+
+            if (fadeIn) {
+
+                fadeAudioVolume(
+                    targetAudio,
+                    titleVolume,
+                    fadeDuration
+                );
+
+            }
+
+            return true;
+
+        } catch (error) {
+
+            return false;
+
+        }
+
+    }
+
+
+    /**
+     * ゲームBGMへ切り替える。
+     * game.jsのplayBgmと同じ処理を明示的に呼べる別名。
+     *
+     * @param {Object} options
+     * @returns {Promise<boolean>}
+     */
+    function playGameBgm(options = {}) {
+
+        return playBgm(options);
+
+    }
+
+
+    /**
+     * BGMを一時停止する
+     *
+     * @param {boolean} fadeOut
+     * @param {number} fadeDuration
+     */
+    function pauseBgm(
+        fadeOut = true,
+        fadeDuration = 450
+    ) {
+
+        const targetAudio =
+            currentBgmAudio || bgmAudio;
+
+        if (!targetAudio) {
+
+            return;
+
+        }
+
+        if (!fadeOut) {
+
+            targetAudio.pause();
+
+            return;
+
+        }
+
+        fadeAudioVolume(
+            targetAudio,
+            0,
+            fadeDuration,
+            function () {
+
+                targetAudio.pause();
+                targetAudio.volume =
+                    muted ? 0 : bgmVolume;
+
+            }
+        );
+
+    }
+
+
+    /**
+     * BGMを停止し、先頭へ戻す
+     *
+     * @param {boolean} fadeOut
+     */
+    function stopBgm(fadeOut = true) {
+
+        const targetAudio =
+            currentBgmAudio || bgmAudio;
+
+        if (!targetAudio) {
+
+            return;
+
+        }
+
+        if (!fadeOut) {
+
+            targetAudio.pause();
+            resetAudioTime(targetAudio);
+
+            return;
+
+        }
+
+        fadeAudioVolume(
+            targetAudio,
+            0,
+            450,
+            function () {
+
+                targetAudio.pause();
+                resetAudioTime(targetAudio);
+
+                targetAudio.volume =
+                    muted ? 0 : bgmVolume;
+
+            }
+        );
+
+    }
+
+
+    /**
+     * BGMが再生中か確認する
+     *
+     * @returns {boolean}
+     */
+    function isBgmPlaying() {
+
+        const targetAudio =
+            currentBgmAudio || bgmAudio;
+
+        return Boolean(
+            targetAudio &&
+            !targetAudio.paused &&
+            !targetAudio.ended
+        );
+
+    }
+
+
+    /**
+     * 音量を徐々に変更する
+     *
+     * @param {HTMLAudioElement} audio
+     * @param {number} targetVolume
+     * @param {number} duration
+     * @param {Function|null} onComplete
+     */
+    function fadeAudioVolume(
+        audio,
+        targetVolume,
+        duration = 500,
+        onComplete = null
+    ) {
+
+        if (!audio) {
+
+            return;
+
+        }
+
+        const safeTargetVolume = clampVolume(
+            targetVolume
+        );
+
+        const startVolume = audio.volume;
+
+        const startTime = performance.now();
+
+        function update(currentTime) {
+
+            const elapsed = currentTime - startTime;
+
+            const progress = Math.min(
+                1,
+                elapsed / Math.max(1, duration)
+            );
+
+            const newVolume =
+                startVolume +
+                (
+                    safeTargetVolume - startVolume
+                ) * progress;
+
+            audio.volume = clampVolume(newVolume);
+
+            if (progress < 1) {
+
+                requestAnimationFrame(update);
+
+            } else if (
+                typeof onComplete === "function"
+            ) {
+
+                onComplete();
+
+            }
+
+        }
+
+        requestAnimationFrame(update);
+
+    }
+
+
+    /**
+     * BGMを一時的に小さくし、演出音を聞き取りやすくする。
+     *
+     * @param {number} ratio
+     * @param {number} holdDuration
+     */
+    function duckBgm(
+        ratio = 0.28,
+        holdDuration = 900
+    ) {
+
+        const targetAudio =
+            currentBgmAudio || bgmAudio;
+
+        if (!targetAudio || targetAudio.paused) {
+
+            return;
+
+        }
+
+        const originalVolume =
+            muted ? 0 : bgmVolume;
+
+        fadeAudioVolume(
+            targetAudio,
+            originalVolume * ratio,
+            100
+        );
+
+        window.setTimeout(
+            function () {
+
+                if (!muted && !targetAudio.paused) {
+
+                    fadeAudioVolume(
+                        targetAudio,
+                        originalVolume,
+                        320
+                    );
+
+                }
+
+            },
+            Math.max(120, holdDuration)
+        );
+
+    }
+
+
+    /**
+     * 新規mp3が未配置でも必殺技用の音を鳴らす代替処理。
+     *
+     * @param {"gaugeFull"|"repairEnd"} effectName
+     * @returns {boolean}
+     */
+    function playSynthEffect(effectName) {
+
+        if (muted) {
+
+            return false;
+
+        }
+
+        const context = getWebAudioContext();
+
+        if (!context || context.state !== "running") {
+
+            return false;
+
+        }
+
+        const now = context.currentTime;
+        const master = context.createGain();
+
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.exponentialRampToValueAtTime(
+            Math.max(0.0001, seVolume * 0.34),
+            now + 0.018
+        );
+
+        master.connect(context.destination);
+
+        if (effectName === "gaugeFull") {
+
+            const notes = [523.25, 659.25, 783.99, 1046.5];
+
+            notes.forEach(
+                function (frequency, index) {
+
+                    const oscillator =
+                        context.createOscillator();
+                    const gain = context.createGain();
+                    const start = now + index * 0.085;
+
+                    oscillator.type = "triangle";
+                    oscillator.frequency.setValueAtTime(
+                        frequency,
+                        start
+                    );
+
+                    gain.gain.setValueAtTime(0.0001, start);
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.7,
+                        start + 0.012
+                    );
+                    gain.gain.exponentialRampToValueAtTime(
+                        0.0001,
+                        start + 0.16
+                    );
+
+                    oscillator.connect(gain);
+                    gain.connect(master);
+                    oscillator.start(start);
+                    oscillator.stop(start + 0.18);
+
+                }
+            );
+
+            master.gain.exponentialRampToValueAtTime(
+                0.0001,
+                now + 0.52
+            );
+
+            return true;
+
+        }
+
+        const bass = context.createOscillator();
+        const lead = context.createOscillator();
+        const high = context.createOscillator();
+        const bassGain = context.createGain();
+        const leadGain = context.createGain();
+        const highGain = context.createGain();
+
+        bass.type = "sawtooth";
+        lead.type = "square";
+        high.type = "triangle";
+
+        bass.frequency.setValueAtTime(82.41, now);
+        bass.frequency.exponentialRampToValueAtTime(
+            41.2,
+            now + 0.75
+        );
+
+        lead.frequency.setValueAtTime(329.63, now);
+        lead.frequency.exponentialRampToValueAtTime(
+            987.77,
+            now + 0.62
+        );
+
+        high.frequency.setValueAtTime(659.25, now + 0.12);
+        high.frequency.exponentialRampToValueAtTime(
+            1318.5,
+            now + 0.7
+        );
+
+        [bassGain, leadGain, highGain].forEach(
+            function (gain) {
+
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.exponentialRampToValueAtTime(
+                    0.55,
+                    now + 0.025
+                );
+                gain.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    now + 0.9
+                );
+
+            }
+        );
+
+        bass.connect(bassGain);
+        lead.connect(leadGain);
+        high.connect(highGain);
+        bassGain.connect(master);
+        leadGain.connect(master);
+        highGain.connect(master);
+
+        bass.start(now);
+        lead.start(now);
+        high.start(now + 0.12);
+
+        bass.stop(now + 0.92);
+        lead.stop(now + 0.92);
+        high.stop(now + 0.92);
+
+        master.gain.exponentialRampToValueAtTime(
+            0.0001,
+            now + 1.0
+        );
+
+        return true;
+
+    }
+
+
+    /* =====================================================
+       SOUND EFFECTS
+       ===================================================== */
+
+    /**
+     * 効果音を再生する
+     *
+     * @param {string} soundName
+     * @param {Object} options
+     * @param {boolean} options.restart
+     * @param {boolean} options.allowOverlap
+     * @param {number} options.volumeMultiplier
+     * @param {number} options.playbackRate
+     * @returns {boolean}
+     */
+    function playSound(
+        soundName,
+        options = {}
+    ) {
+
+        const {
+            restart = true,
+            allowOverlap = true,
+            volumeMultiplier = 1,
+            playbackRate = 1
+        } = options;
+
+        if (!initialized) {
+
+            initialize();
+
+        }
+
+        if (muted) {
+
+            return false;
+
+        }
+
+        const baseAudio = soundElements[soundName];
+
+        if (!baseAudio) {
+
+            console.warn(
+                `効果音 "${soundName}" が登録されていません。`
+            );
+
+            return false;
+
+        }
+
+        const finalVolume = clampVolume(
+            seVolume * volumeMultiplier
+        );
+
+        if (allowOverlap) {
+
+            const clonedAudio =
+                baseAudio.cloneNode(true);
+
+            clonedAudio.volume = finalVolume;
+            clonedAudio.playbackRate =
+                Math.max(0.5, Math.min(2, playbackRate));
+
+            clonedAudio.setAttribute(
+                "playsinline",
+                ""
+            );
+
+            clonedAudio.setAttribute(
+                "webkit-playsinline",
+                ""
+            );
+
+            activeClones.add(clonedAudio);
+
+            const cleanup = function () {
+
+                clonedAudio.pause();
+
+                activeClones.delete(clonedAudio);
+
+                clonedAudio.removeEventListener(
+                    "ended",
+                    cleanup
+                );
+
+                clonedAudio.removeEventListener(
+                    "error",
+                    cleanup
+                );
+
+            };
+
+            clonedAudio.addEventListener(
+                "ended",
+                cleanup
+            );
+
+            clonedAudio.addEventListener(
+                "error",
+                cleanup
+            );
+
+            handlePlayPromise(
+                clonedAudio.play()
+            );
+
+            return true;
+
+        }
+
+        baseAudio.volume = finalVolume;
+        baseAudio.playbackRate =
+            Math.max(0.5, Math.min(2, playbackRate));
+
+        if (restart) {
+
+            resetAudioTime(baseAudio);
+
+        }
+
+        handlePlayPromise(
+            baseAudio.play()
+        );
+
+        return true;
+
+    }
+
+
+    /**
+     * タップ音
+     */
+    function playTap() {
+
+        return playSound(
+            "tap",
+            {
+                allowOverlap: true,
+                volumeMultiplier: 0.68,
+                playbackRate: 1
+            }
+        );
+
+    }
+
+
+    /**
+     * 来店ベル
+     */
+    function playBell() {
+
+        return playSound(
+            "bell",
+            {
+                allowOverlap: false,
+                volumeMultiplier: 0.92
+            }
+        );
+
+    }
+
+
+    /**
+     * 正解音
+     */
+    function playCorrect() {
+
+        return playSound(
+            "correct",
+            {
+                allowOverlap: true,
+                volumeMultiplier: 1
+            }
+        );
+
+    }
+
+
+    /**
+     * 不正解音
+     */
+    function playWrong() {
+
+        return playSound(
+            "wrong",
+            {
+                allowOverlap: false,
+                volumeMultiplier: 0.95
+            }
+        );
+
+    }
+
+
+    /**
+     * 修理完了音
+     */
+    function playRepairComplete() {
+
+        return playSound(
+            "repair",
+            {
+                allowOverlap: false,
+                volumeMultiplier: 1
+            }
+        );
+
+    }
+
+
+    /**
+     * リペアエンドゲージ満タン音。
+     * 専用audio要素が無ければWeb Audioで代替する。
+     */
+    function playGaugeFull() {
+
+        if (soundElements.gaugeFull) {
+
+            return playSound(
+                "gaugeFull",
+                {
+                    allowOverlap: false,
+                    volumeMultiplier: 1
+                }
+            );
+
+        }
+
+        return playSynthEffect("gaugeFull");
+
+    }
+
+
+    /**
+     * 必殺技「リペアエンド！！」発動音。
+     * game.jsから直接呼び出される。
+     */
+    function playRepairEnd() {
+
+        duckBgm(0.22, 1050);
+
+        if (soundElements.repairEnd) {
+
+            return playSound(
+                "repairEnd",
+                {
+                    allowOverlap: false,
+                    volumeMultiplier: 1
+                }
+            );
+
+        }
+
+        const synthesized =
+            playSynthEffect("repairEnd");
+
+        if (!synthesized) {
+
+            playRepairComplete();
+
+            window.setTimeout(
+                playCorrect,
+                170
+            );
+
+        }
+
+        return true;
+
+    }
+
+
+    /**
+     * コイン獲得音
+     */
+    function playCoin() {
+
+        return playSound(
+            "coin",
+            {
+                allowOverlap: true,
+                volumeMultiplier: 0.88
+            }
+        );
+
+    }
+
+
+    /**
+     * コンボ数に合わせてコイン音の高さを変更する
+     *
+     * @param {number} combo
+     */
+    function playComboCoin(combo = 1) {
+
+        const safeCombo = Math.max(
+            1,
+            Number(combo) || 1
+        );
+
+        const rateIncrease = Math.min(
+            0.5,
+            (safeCombo - 1) * 0.045
+        );
+
+        return playSound(
+            "coin",
+            {
+                allowOverlap: true,
+                volumeMultiplier: 0.9,
+                playbackRate: 1 + rateIncrease
+            }
+        );
+
+    }
+
+
+    /**
+     * 全効果音を停止する
+     */
+    function stopAllSoundEffects() {
+
+        Object.values(soundElements).forEach(
+            function (audio) {
+
+                if (!audio) {
+
+                    return;
+
+                }
+
+                audio.pause();
+                resetAudioTime(audio);
+
+            }
+        );
+
+        activeClones.forEach(
+            function (audio) {
+
+                audio.pause();
+
+            }
+        );
+
+        activeClones.clear();
+
+    }
+
+
+    /* =====================================================
+       VOLUME
+       ===================================================== */
+
+    /**
+     * BGM音量を変更する
+     *
+     * @param {number} volume
+     * @returns {number}
+     */
+    function setBgmVolume(volume) {
+
+        bgmVolume = clampVolume(volume);
+
+        if (bgmAudio) {
+
+            bgmAudio.volume =
+                muted ? 0 : bgmVolume;
+
+        }
+
+        if (titleBgmAudio) {
+
+            titleBgmAudio.volume =
+                muted ? 0 : bgmVolume * 0.82;
+
+        }
+
+        saveSettings();
+
+        return bgmVolume;
+
+    }
+
+
+    /**
+     * 効果音音量を変更する
+     *
+     * @param {number} volume
+     * @returns {number}
+     */
+    function setSeVolume(volume) {
+
+        seVolume = clampVolume(volume);
+
+        Object.values(soundElements).forEach(
+            function (audio) {
+
+                if (!audio) {
+
+                    return;
+
+                }
+
+                audio.volume =
+                    muted ? 0 : seVolume;
+
+            }
+        );
+
+        saveSettings();
+
+        return seVolume;
+
+    }
+
+
+    /**
+     * 現在の音量を適用する
+     */
+    function applyVolumes() {
+
+        if (bgmAudio) {
+
+            bgmAudio.volume =
+                muted ? 0 : bgmVolume;
+
+        }
+
+        if (titleBgmAudio) {
+
+            titleBgmAudio.volume =
+                muted ? 0 : bgmVolume * 0.82;
+
+        }
+
+        Object.values(soundElements).forEach(
+            function (audio) {
+
+                if (!audio) {
+
+                    return;
+
+                }
+
+                audio.volume =
+                    muted ? 0 : seVolume;
+
+            }
+        );
+
+    }
+
+
+    /**
+     * BGM音量を取得する
+     *
+     * @returns {number}
+     */
+    function getBgmVolume() {
+
+        return bgmVolume;
+
+    }
+
+
+    /**
+     * 効果音音量を取得する
+     *
+     * @returns {number}
+     */
+    function getSeVolume() {
+
+        return seVolume;
+
+    }
+
+
+    /* =====================================================
+       MUTE
+       ===================================================== */
+
+    /**
+     * ミュート状態を変更する
+     *
+     * @param {boolean} value
+     * @returns {boolean}
+     */
+    function setMuted(value) {
+
+        muted = Boolean(value);
+
+        applyVolumes();
+
+        activeClones.forEach(
+            function (audio) {
+
+                audio.volume =
+                    muted ? 0 : seVolume;
+
+            }
+        );
+
+        saveSettings();
+
+        return muted;
+
+    }
+
+
+    /**
+     * ミュート切り替え
+     *
+     * @returns {boolean}
+     */
+    function toggleMute() {
+
+        return setMuted(!muted);
+
+    }
+
+
+    /**
+     * ミュート中か確認する
+     *
+     * @returns {boolean}
+     */
+    function isMuted() {
+
+        return muted;
+
+    }
+
+
+    /* =====================================================
+       PAGE VISIBILITY
+       ===================================================== */
+
+    /**
+     * ページが非表示になった時にBGMを停止する
+     */
+    function handleVisibilityChange() {
+
+        const targetAudio =
+            currentBgmAudio || bgmAudio;
+
+        if (!targetAudio) {
+
+            return;
+
+        }
+
+        if (document.hidden) {
+
+            if (!targetAudio.paused) {
+
+                targetAudio.dataset.resumeAfterVisible =
+                    "true";
+
+                targetAudio.pause();
+
+            }
+
+            return;
+
+        }
+
+        if (
+            targetAudio.dataset.resumeAfterVisible ===
+            "true"
+        ) {
+
+            delete targetAudio.dataset.resumeAfterVisible;
+
+            if (!muted) {
+
+                handlePlayPromise(
+                    targetAudio.play()
+                );
+
+            }
+
+        }
+
+    }
+
+
+
+    document.addEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+    );
+
+
+    /* =====================================================
+       REPAIR END GAUGE SOUND
+       ===================================================== */
+
+    /**
+     * game.jsが自動生成する必殺技ゲージを監視し、
+     * 100%へ到達した瞬間だけ満タン音を鳴らす。
+     */
+    function registerRepairEndGaugeObserver() {
+
+        if (gaugeObserver || !document.documentElement) {
+
+            return;
+
+        }
+
+        function checkGaugeReady() {
+
+            const panel = document.getElementById(
+                "repairEndPanel"
+            );
+
+            if (!panel) {
+
+                observedRepairEndPanel = null;
+                repairEndGaugeWasReady = false;
+
+                return;
+
+            }
+
+            if (panel !== observedRepairEndPanel) {
+
+                observedRepairEndPanel = panel;
+                repairEndGaugeWasReady = false;
+
+            }
+
+            const ready =
+                panel.classList.contains("ready");
+
+            if (ready && !repairEndGaugeWasReady) {
+
+                playGaugeFull();
+
+            }
+
+            repairEndGaugeWasReady = ready;
+
+        }
+
+        gaugeObserver = new MutationObserver(
+            checkGaugeReady
+        );
+
+        gaugeObserver.observe(
+            document.documentElement,
+            {
+                subtree: true,
+                childList: true,
+                attributes: true,
+                attributeFilter: ["class"]
+            }
+        );
+
+        checkGaugeReady();
+
+    }
+
+
+    /* =====================================================
+       BUTTON SOUND
+       ===================================================== */
+
+    /**
+     * ページ内のボタンへタップ音を自動設定する
+     */
+    function registerGlobalButtonSounds() {
+
+        document.addEventListener(
+            "click",
+            function (event) {
+
+                const target = event.target;
+
+                if (!(target instanceof Element)) {
+
+                    return;
+
+                }
+
+                const button = target.closest(
+                    "button"
+                );
+
+                if (!button) {
+
+                    return;
+
+                }
+
+                if (button.disabled) {
+
+                    return;
+
+                }
+
+                if (
+                    button.dataset.noTapSound ===
+                    "true"
+                ) {
+
+                    return;
+
+                }
+
+                playTap();
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       STATUS
+       ===================================================== */
+
+    /**
+     * サウンド状態を取得する
+     *
+     * @returns {Object}
+     */
+    function getStatus() {
+
+        return {
+            initialized: initialized,
+            audioUnlocked: audioUnlocked,
+            muted: muted,
+            bgmVolume: bgmVolume,
+            seVolume: seVolume,
+            bgmPlaying: isBgmPlaying(),
+            currentBgm: currentBgmAudio === titleBgmAudio
+                ? "title"
+                : "game",
+            webAudioState: webAudioContext
+                ? webAudioContext.state
+                : "unavailable",
+            activeSoundCount: activeClones.size
+        };
+
+    }
+
+
+    /* =====================================================
+       AUTO INITIALIZE
+       ===================================================== */
+
+    function handleDomReady() {
+
+        initialize();
+        registerGlobalButtonSounds();
+
+    }
+
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            handleDomReady,
+            {
+                once: true
+            }
+        );
+
+    } else {
+
+        handleDomReady();
+
+    }
+
+
+    /* =====================================================
+       PUBLIC API
+       ===================================================== */
+
+    const RepairLegendSound = Object.freeze({
+
+        initialize: initialize,
+
+        unlockAudio: unlockAudio,
+
+        playBgm: playBgm,
+
+        playTitleBgm: playTitleBgm,
+
+        playGameBgm: playGameBgm,
+
+        pauseBgm: pauseBgm,
+
+        stopBgm: stopBgm,
+
+        isBgmPlaying: isBgmPlaying,
+
+        playSound: playSound,
+
+        playTap: playTap,
+
+        playBell: playBell,
+
+        playCorrect: playCorrect,
+
+        playWrong: playWrong,
+
+        playRepairComplete: playRepairComplete,
+
+        playGaugeFull: playGaugeFull,
+
+        playRepairEnd: playRepairEnd,
+
+        playCoin: playCoin,
+
+        playComboCoin: playComboCoin,
+
+        stopAllSoundEffects: stopAllSoundEffects,
+
+        setBgmVolume: setBgmVolume,
+
+        setSeVolume: setSeVolume,
+
+        getBgmVolume: getBgmVolume,
+
+        getSeVolume: getSeVolume,
+
+        setMuted: setMuted,
+
+        toggleMute: toggleMute,
+
+        isMuted: isMuted,
+
+        getStatus: getStatus
+
+    });
+
+
+    /* =====================================================
+       GLOBAL EXPORT
+       game.jsから使用する
+       ===================================================== */
+
+    window.RepairLegendSound =
+        RepairLegendSound;
+
+})();
