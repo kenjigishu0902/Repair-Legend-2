@@ -39,8 +39,7 @@
 
         repairEndGaugeGain: 20,
 
-        repairEndAnimationDuration: 950,
-
+        repairEndAnimationDuration: 1750,
         correctGaugeGain: 20,
 
         customerEnterDuration: 2700,
@@ -843,9 +842,37 @@
             );
 
             effect.innerHTML = `
-                <div class="repair-end-burst"></div>
-                <div class="repair-end-title">リペアエンド！！</div>
-            `;
+    <div class="repair-end-dark"></div>
+    <div class="repair-end-speed-lines"></div>
+
+    <div class="repair-end-cutin">
+        <div class="repair-end-cutin-bg"></div>
+
+        <img
+            src="./feni.png"
+            class="repair-end-cutin-character"
+            alt=""
+            draggable="false">
+
+        <div class="repair-end-cutin-message">
+            修理不能？<br>
+            その言葉は俺には通用しない。
+        </div>
+    </div>
+
+    <div class="repair-end-slash"></div>
+
+    <div class="repair-end-title-wrap">
+        <div class="repair-end-subtitle">
+            PHOENIX SPECIAL ATTACK
+        </div>
+        <div class="repair-end-title">
+            リペアエンド！！
+        </div>
+    </div>
+
+    <div class="repair-end-flash"></div>
+`;
 
             dom.game.appendChild(
                 effect
