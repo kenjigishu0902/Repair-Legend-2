@@ -1394,7 +1394,7 @@
             "function"
         ) {
 
-            RepairLegendSound.playBgm({
+            
                 restart: false,
                 fadeIn: false
             });
@@ -1501,7 +1501,7 @@
 
         gameState.sequenceId += 1;
 
-        await startTitleBgm();
+        startTitleBgm();
 
         dom.startScreen.classList.add(
             "hidden"
@@ -1551,17 +1551,27 @@
             }
 
             if (
-                window.RepairLegendSound &&
-                typeof RepairLegendSound.playBgm ===
-                    "function"
-            ) {
+    window.RepairLegendSound &&
+    typeof RepairLegendSound.playGameBgm ===
+        "function"
+) {
 
-                RepairLegendSound.playBgm({
-                    restart: false,
-                    fadeIn: true
-                });
+    RepairLegendSound.playGameBgm({
+        restart: true,
+        fadeIn: false
+    });
 
-            }
+} else if (
+    window.RepairLegendSound &&
+    typeof RepairLegendSound.playBgm ===
+        "function"
+) {
+
+    RepairLegendSound.playBgm({
+        restart: true,
+        fadeIn: false
+    });
+}
 
         } catch (error) {
 
