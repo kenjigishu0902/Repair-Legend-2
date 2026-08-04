@@ -1333,10 +1333,10 @@
                 "function"
             ) {
 
-                RepairLegendSound.playBgm({
-                    restart: false,
-                    fadeIn: false
-                });
+                RepairLegendSound.playTitleBgm({
+                restart: false,
+                fadeIn: false
+            });
 
             }
 

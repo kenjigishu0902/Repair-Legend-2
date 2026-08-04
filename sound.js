@@ -1,6 +1,7 @@
 /* =========================================================
    Repair Legend Ver2
-   sound.js - iPhone / iPad Safari BGM修正版
+   sound.js
+   タイトル画面BGM / ゲーム中BGM 分離版
    ========================================================= */
 
 "use strict";
@@ -15,6 +16,7 @@
 
     const DEFAULT_VOLUMES = Object.freeze({
         BGM: 0.38,
+        TITLE_RATIO: 0.82,
         SE: 0.78
     });
 
@@ -34,7 +36,6 @@
     let initialized = false;
     let audioUnlocked = false;
     let muted = false;
-
     let bgmVolume = DEFAULT_VOLUMES.BGM;
     let seVolume = DEFAULT_VOLUMES.SE;
 
@@ -62,8 +63,13 @@
         if (!Number.isFinite(value)) {
             return 0;
         }
-
         return Math.min(1, Math.max(0, value));
+    }
+
+    function getTitleVolume() {
+        return clampVolume(
+            bgmVolume * DEFAULT_VOLUMES.TITLE_RATIO
+        );
     }
 
     function getAudioElement(id, required = true) {
@@ -73,7 +79,6 @@
             if (required) {
                 console.warn(`audio要素 #${id} が見つかりません。`);
             }
-
             return null;
         }
 
@@ -88,15 +93,51 @@
         try {
             audio.currentTime = 0;
         } catch (error) {
-            // 読み込み前はcurrentTimeを変更できない場合があります。
+            // 読み込み前は変更できない場合があります。
+        }
+    }
+
+    function safePlay(audio, label) {
+        if (!audio) {
+            return Promise.resolve(false);
+        }
+
+        try {
+            const result = audio.play();
+
+            if (result && typeof result.then === "function") {
+                return result
+                    .then(function () {
+                        return true;
+                    })
+                    .catch(function (error) {
+                        if (
+                            error &&
+                            error.name !== "AbortError" &&
+                            error.name !== "NotAllowedError"
+                        ) {
+                            console.warn(`${label}を再生できませんでした。`, error);
+                        }
+                        return false;
+                    });
+            }
+
+            return Promise.resolve(true);
+
+        } catch (error) {
+            console.warn(`${label}を再生できませんでした。`, error);
+            return Promise.resolve(false);
         }
     }
 
     function loadSettings() {
         try {
-            const storedMuted = localStorage.getItem(STORAGE_KEYS.MUTED);
-            const storedBgmVolume = localStorage.getItem(STORAGE_KEYS.BGM_VOLUME);
-            const storedSeVolume = localStorage.getItem(STORAGE_KEYS.SE_VOLUME);
+            const storedMuted =
+                localStorage.getItem(STORAGE_KEYS.MUTED);
+            const storedBgmVolume =
+                localStorage.getItem(STORAGE_KEYS.BGM_VOLUME);
+            const storedSeVolume =
+                localStorage.getItem(STORAGE_KEYS.SE_VOLUME);
 
             if (storedMuted !== null) {
                 muted = storedMuted === "true";
@@ -109,6 +150,7 @@
             if (storedSeVolume !== null) {
                 seVolume = clampVolume(Number(storedSeVolume));
             }
+
         } catch (error) {
             console.warn("サウンド設定を読み込めませんでした。", error);
         }
@@ -155,11 +197,42 @@
 
         if (context.state === "suspended") {
             return context.resume()
-                .then(() => context.state === "running")
-                .catch(() => false);
+                .then(function () {
+                    return context.state === "running";
+                })
+                .catch(function () {
+                    return false;
+                });
         }
 
         return Promise.resolve(context.state === "running");
+    }
+
+    function configureBgm(audio, volume) {
+        if (!audio) {
+            return;
+        }
+
+        audio.loop = true;
+        audio.preload = "auto";
+        audio.muted = muted;
+        audio.volume = muted ? 0 : volume;
+        audio.setAttribute("playsinline", "");
+        audio.setAttribute("webkit-playsinline", "");
+        audio.load();
+    }
+
+    function configureEffect(audio) {
+        if (!audio) {
+            return;
+        }
+
+        audio.preload = "auto";
+        audio.muted = muted;
+        audio.volume = muted ? 0 : seVolume;
+        audio.setAttribute("playsinline", "");
+        audio.setAttribute("webkit-playsinline", "");
+        audio.load();
     }
 
     function initialize() {
@@ -168,11 +241,7 @@
         }
 
         loadSettings();
-        muted = false;
-        bgmVolume = 0.38;
-        seVolume = 0.78;
-        localStorage.removeItem("repairLegendMuted");
-        localStorage.removeItem("repairLegendBgmVolume");
+
         bgmAudio = getAudioElement(SOUND_IDS.BGM);
         titleBgmAudio = getAudioElement(SOUND_IDS.TITLE_BGM, false);
 
@@ -182,29 +251,19 @@
         soundElements.wrong = getAudioElement(SOUND_IDS.WRONG);
         soundElements.repair = getAudioElement(SOUND_IDS.REPAIR);
         soundElements.coin = getAudioElement(SOUND_IDS.COIN);
-        soundElements.gaugeFull = getAudioElement(SOUND_IDS.GAUGE_FULL, false);
-        soundElements.repairEnd = getAudioElement(SOUND_IDS.REPAIR_END, false);
+        soundElements.gaugeFull =
+            getAudioElement(SOUND_IDS.GAUGE_FULL, false);
+        soundElements.repairEnd =
+            getAudioElement(SOUND_IDS.REPAIR_END, false);
 
-        [bgmAudio, titleBgmAudio].filter(Boolean).forEach(function (audio) {
-            audio.loop = true;
-            audio.preload = "auto";
-            audio.muted = muted;
-            audio.volume = muted ? 0 : bgmVolume;
-            audio.setAttribute("playsinline", "");
-            audio.setAttribute("webkit-playsinline", "");
-            audio.load();
-        });
+        configureBgm(bgmAudio, bgmVolume);
+        configureBgm(titleBgmAudio, getTitleVolume());
 
-        Object.values(soundElements).filter(Boolean).forEach(function (audio) {
-            audio.preload = "auto";
-            audio.muted = muted;
-            audio.volume = muted ? 0 : seVolume;
-            audio.setAttribute("playsinline", "");
-            audio.setAttribute("webkit-playsinline", "");
-            audio.load();
-        });
+        Object.values(soundElements)
+            .filter(Boolean)
+            .forEach(configureEffect);
 
-        currentBgmAudio = bgmAudio;
+        currentBgmAudio = titleBgmAudio || bgmAudio;
 
         registerUnlockEvents();
         registerGlobalButtonSounds();
@@ -213,7 +272,6 @@
         initialized = true;
 
         console.log("Repair Legend Sound: 初期化完了");
-
         return true;
     }
 
@@ -222,13 +280,15 @@
             initialize();
         }
 
-        resumeWebAudioContext();
         audioUnlocked = true;
 
-        return Promise.resolve(true);
+        return resumeWebAudioContext()
+            .then(function () {
+                return true;
+            });
     }
 
-    function startAudioFromUserGesture() {
+    function startAudioFromUserGesture(mode = "title") {
         if (!initialized) {
             initialize();
         }
@@ -236,23 +296,47 @@
         resumeWebAudioContext();
         audioUnlocked = true;
 
-        const target = currentBgmAudio || titleBgmAudio || bgmAudio;
+        const target =
+            mode === "game"
+                ? bgmAudio
+                : titleBgmAudio || bgmAudio;
 
-        if (!target || muted || !target.paused) {
-            return;
+        if (!target || muted) {
+            return false;
         }
 
-        target.muted = false;
-        target.volume = bgmVolume;
+        if (
+            target === bgmAudio &&
+            titleBgmAudio &&
+            titleBgmAudio !== target
+        ) {
+            titleBgmAudio.pause();
+        }
+
+        if (
+            target === titleBgmAudio &&
+            bgmAudio &&
+            bgmAudio !== target
+        ) {
+            bgmAudio.pause();
+        }
+
+        currentBgmAudio = target;
         target.loop = true;
+        target.muted = false;
+        target.volume =
+            target === titleBgmAudio
+                ? getTitleVolume()
+                : bgmVolume;
 
-        const playPromise = target.play();
+        safePlay(
+            target,
+            mode === "game"
+                ? "ゲームBGM"
+                : "タイトルBGM"
+        );
 
-        if (playPromise && typeof playPromise.catch === "function") {
-            playPromise.catch(function (error) {
-                console.warn("ユーザー操作時のBGM再生に失敗しました。", error);
-            });
-        }
+        return true;
     }
 
     function registerUnlockEvents() {
@@ -261,55 +345,38 @@
             passive: true
         };
 
-        document.addEventListener("touchstart", startAudioFromUserGesture, options);
-        document.addEventListener("pointerdown", startAudioFromUserGesture, options);
-        document.addEventListener("keydown", startAudioFromUserGesture, { once: true });
-    }
+        document.addEventListener(
+            "touchstart",
+            function () {
+                startAudioFromUserGesture("title");
+            },
+            options
+        );
 
-    async function playBgm(options = {}) {
-        const {
-            restart = false,
-            fadeIn = false
-        } = options;
+        document.addEventListener(
+            "pointerdown",
+            function () {
+                startAudioFromUserGesture("title");
+            },
+            options
+        );
 
-        if (!initialized) {
-            initialize();
-        }
-
-        if (!bgmAudio || muted) {
-            return false;
-        }
-
-        if (titleBgmAudio && titleBgmAudio !== bgmAudio) {
-            titleBgmAudio.pause();
-        }
-
-        currentBgmAudio = bgmAudio;
-        bgmAudio.loop = true;
-        bgmAudio.muted = false;
-
-        if (restart) {
-            resetAudioTime(bgmAudio);
-        }
-
-        bgmAudio.volume = fadeIn ? 0 : bgmVolume;
-
-        try {
-            await bgmAudio.play();
-
-            if (fadeIn) {
-                fadeAudioVolume(bgmAudio, bgmVolume, 500);
-            }
-
-            audioUnlocked = true;
-            return true;
-        } catch (error) {
-            console.warn("BGM再生に失敗しました。", error);
-            return false;
-        }
+        document.addEventListener(
+            "keydown",
+            function () {
+                startAudioFromUserGesture("title");
+            },
+            { once: true }
+        );
     }
 
     async function playTitleBgm(options = {}) {
+        const {
+            restart = false,
+            fadeIn = false,
+            fadeDuration = 500
+        } = options;
+
         if (!initialized) {
             initialize();
         }
@@ -322,40 +389,101 @@
 
         if (bgmAudio && target !== bgmAudio) {
             bgmAudio.pause();
+            resetAudioTime(bgmAudio);
         }
 
         currentBgmAudio = target;
         target.loop = true;
         target.muted = false;
 
-        if (options.restart === true) {
+        if (restart) {
             resetAudioTime(target);
         }
 
-        const targetVolume = clampVolume(bgmVolume * 0.82);
-        target.volume = options.fadeIn === true ? 0 : targetVolume;
+        const targetVolume =
+            target === titleBgmAudio
+                ? getTitleVolume()
+                : bgmVolume;
 
-        try {
-            await target.play();
+        target.volume = fadeIn ? 0 : targetVolume;
 
-            if (options.fadeIn === true) {
-                fadeAudioVolume(target, targetVolume, 500);
-            }
+        const played = await safePlay(target, "タイトルBGM");
 
+        if (played && fadeIn) {
+            fadeAudioVolume(
+                target,
+                targetVolume,
+                fadeDuration
+            );
+        }
+
+        if (played) {
             audioUnlocked = true;
-            return true;
-        } catch (error) {
-            console.warn("タイトルBGMを再生できませんでした。", error);
+        }
+
+        return played;
+    }
+
+    async function playGameBgm(options = {}) {
+        const {
+            restart = true,
+            fadeIn = false,
+            fadeDuration = 500
+        } = options;
+
+        if (!initialized) {
+            initialize();
+        }
+
+        if (!bgmAudio || muted) {
             return false;
         }
+
+        if (
+            titleBgmAudio &&
+            titleBgmAudio !== bgmAudio
+        ) {
+            titleBgmAudio.pause();
+            resetAudioTime(titleBgmAudio);
+        }
+
+        currentBgmAudio = bgmAudio;
+        bgmAudio.loop = true;
+        bgmAudio.muted = false;
+
+        if (restart) {
+            resetAudioTime(bgmAudio);
+        }
+
+        bgmAudio.volume = fadeIn ? 0 : bgmVolume;
+
+        const played = await safePlay(bgmAudio, "ゲームBGM");
+
+        if (played && fadeIn) {
+            fadeAudioVolume(
+                bgmAudio,
+                bgmVolume,
+                fadeDuration
+            );
+        }
+
+        if (played) {
+            audioUnlocked = true;
+        }
+
+        return played;
     }
 
-    function playGameBgm(options = {}) {
-        return playBgm(options);
+    function playBgm(options = {}) {
+        return playGameBgm(options);
     }
 
-    function pauseBgm(fadeOut = false) {
-        const target = currentBgmAudio || bgmAudio;
+    function pauseBgm(
+        fadeOut = false,
+        fadeDuration = 300
+    ) {
+        const target =
+            currentBgmAudio || bgmAudio;
 
         if (!target) {
             return;
@@ -366,23 +494,34 @@
             return;
         }
 
-        fadeAudioVolume(target, 0, 300, function () {
-            target.pause();
-            target.volume = muted ? 0 : bgmVolume;
-        });
+        fadeAudioVolume(
+            target,
+            0,
+            fadeDuration,
+            function () {
+                target.pause();
+                target.volume =
+                    target === titleBgmAudio
+                        ? getTitleVolume()
+                        : bgmVolume;
+            }
+        );
     }
 
     function stopBgm() {
-        [bgmAudio, titleBgmAudio].filter(Boolean).forEach(function (audio) {
-            audio.pause();
-            resetAudioTime(audio);
-        });
+        [bgmAudio, titleBgmAudio]
+            .filter(Boolean)
+            .forEach(function (audio) {
+                audio.pause();
+                resetAudioTime(audio);
+            });
 
         currentBgmAudio = null;
     }
 
     function isBgmPlaying() {
-        const target = currentBgmAudio || bgmAudio;
+        const target =
+            currentBgmAudio || bgmAudio;
 
         return Boolean(
             target &&
@@ -408,17 +547,21 @@
         function update(now) {
             const progress = Math.min(
                 1,
-                (now - startTime) / Math.max(1, duration)
+                (now - startTime) /
+                Math.max(1, duration)
             );
 
             audio.volume = clampVolume(
                 startVolume +
-                (safeTarget - startVolume) * progress
+                (safeTarget - startVolume) *
+                progress
             );
 
             if (progress < 1) {
                 requestAnimationFrame(update);
-            } else if (typeof onComplete === "function") {
+            } else if (
+                typeof onComplete === "function"
+            ) {
                 onComplete();
             }
         }
@@ -426,7 +569,10 @@
         requestAnimationFrame(update);
     }
 
-    function playSound(soundName, options = {}) {
+    function playSound(
+        soundName,
+        options = {}
+    ) {
         if (!initialized) {
             initialize();
         }
@@ -435,30 +581,34 @@
             return false;
         }
 
-        const baseAudio = soundElements[soundName];
+        const baseAudio =
+            soundElements[soundName];
 
         if (!baseAudio) {
             return false;
         }
 
-        const finalVolume = clampVolume(
-            seVolume *
-            (
-                Number(options.volumeMultiplier) ||
-                1
+        const multiplier =
+            Number.isFinite(
+                Number(options.volumeMultiplier)
             )
-        );
+                ? Number(options.volumeMultiplier)
+                : 1;
 
-        const playbackRate = Math.max(
-            0.5,
-            Math.min(
-                2,
-                Number(options.playbackRate) ||
-                1
-            )
-        );
+        const finalVolume =
+            clampVolume(seVolume * multiplier);
 
-        const clonedAudio = baseAudio.cloneNode(true);
+        const playbackRate =
+            Math.max(
+                0.5,
+                Math.min(
+                    2,
+                    Number(options.playbackRate) || 1
+                )
+            );
+
+        const clonedAudio =
+            baseAudio.cloneNode(true);
 
         clonedAudio.muted = false;
         clonedAudio.volume = finalVolume;
@@ -473,17 +623,26 @@
             activeClones.delete(clonedAudio);
         };
 
-        clonedAudio.addEventListener("ended", cleanup, { once: true });
-        clonedAudio.addEventListener("error", cleanup, { once: true });
+        clonedAudio.addEventListener(
+            "ended",
+            cleanup,
+            { once: true }
+        );
 
-        const playPromise = clonedAudio.play();
+        clonedAudio.addEventListener(
+            "error",
+            cleanup,
+            { once: true }
+        );
 
-        if (playPromise && typeof playPromise.catch === "function") {
-            playPromise.catch(function (error) {
+        safePlay(
+            clonedAudio,
+            `効果音「${soundName}」`
+        ).then(function (played) {
+            if (!played) {
                 activeClones.delete(clonedAudio);
-                console.warn(`効果音「${soundName}」を再生できませんでした。`, error);
-            });
-        }
+            }
+        });
 
         return true;
     }
@@ -529,10 +688,8 @@
     }
 
     function playComboCoin(combo = 1) {
-        const safeCombo = Math.max(
-            1,
-            Number(combo) || 1
-        );
+        const safeCombo =
+            Math.max(1, Number(combo) || 1);
 
         return playSound("coin", {
             volumeMultiplier: 0.9,
@@ -554,19 +711,27 @@
     }
 
     function setBgmVolume(value) {
-        bgmVolume = clampVolume(Number(value));
+        bgmVolume =
+            clampVolume(Number(value));
 
-        [bgmAudio, titleBgmAudio].filter(Boolean).forEach(function (audio) {
-            audio.volume = muted ? 0 : bgmVolume;
-        });
+        if (bgmAudio) {
+            bgmAudio.volume =
+                muted ? 0 : bgmVolume;
+        }
+
+        if (titleBgmAudio) {
+            titleBgmAudio.volume =
+                muted ? 0 : getTitleVolume();
+        }
 
         saveSettings();
-
         return bgmVolume;
     }
 
     function setSeVolume(value) {
-        seVolume = clampVolume(Number(value));
+        seVolume =
+            clampVolume(Number(value));
+
         saveSettings();
         return seVolume;
     }
@@ -582,13 +747,23 @@
     function setMuted(value) {
         muted = Boolean(value);
 
-        [bgmAudio, titleBgmAudio].filter(Boolean).forEach(function (audio) {
+        if (bgmAudio) {
+            bgmAudio.muted = muted;
+            bgmAudio.volume =
+                muted ? 0 : bgmVolume;
+        }
+
+        if (titleBgmAudio) {
+            titleBgmAudio.muted = muted;
+            titleBgmAudio.volume =
+                muted ? 0 : getTitleVolume();
+        }
+
+        activeClones.forEach(function (audio) {
             audio.muted = muted;
-            audio.volume = muted ? 0 : bgmVolume;
         });
 
         saveSettings();
-
         return muted;
     }
 
@@ -601,25 +776,29 @@
     }
 
     function registerGlobalButtonSounds() {
-        document.addEventListener("click", function (event) {
-            const target = event.target;
+        document.addEventListener(
+            "click",
+            function (event) {
+                const target = event.target;
 
-            if (!(target instanceof Element)) {
-                return;
+                if (!(target instanceof Element)) {
+                    return;
+                }
+
+                const button =
+                    target.closest("button");
+
+                if (
+                    !button ||
+                    button.disabled ||
+                    button.dataset.noTapSound === "true"
+                ) {
+                    return;
+                }
+
+                playTap();
             }
-
-            const button = target.closest("button");
-
-            if (
-                !button ||
-                button.disabled ||
-                button.dataset.noTapSound === "true"
-            ) {
-                return;
-            }
-
-            playTap();
-        });
+        );
     }
 
     function registerRepairEndGaugeObserver() {
@@ -628,23 +807,31 @@
         }
 
         function checkGauge() {
-            const panel = document.getElementById("repairEndPanel");
+            const panel =
+                document.getElementById(
+                    "repairEndPanel"
+                );
 
             if (!panel) {
                 repairEndGaugeWasReady = false;
                 return;
             }
 
-            const ready = panel.classList.contains("ready");
+            const ready =
+                panel.classList.contains("ready");
 
-            if (ready && !repairEndGaugeWasReady) {
+            if (
+                ready &&
+                !repairEndGaugeWasReady
+            ) {
                 playGaugeFull();
             }
 
             repairEndGaugeWasReady = ready;
         }
 
-        gaugeObserver = new MutationObserver(checkGauge);
+        gaugeObserver =
+            new MutationObserver(checkGauge);
 
         gaugeObserver.observe(
             document.documentElement,
@@ -660,7 +847,8 @@
     }
 
     function handleVisibilityChange() {
-        const target = currentBgmAudio || bgmAudio;
+        const target =
+            currentBgmAudio || bgmAudio;
 
         if (!target) {
             return;
@@ -668,10 +856,10 @@
 
         if (document.hidden) {
             if (!target.paused) {
-                target.dataset.resumeAfterVisible = "true";
+                target.dataset.resumeAfterVisible =
+                    "true";
                 target.pause();
             }
-
             return;
         }
 
@@ -682,31 +870,33 @@
             delete target.dataset.resumeAfterVisible;
 
             if (!muted) {
-                target.play().catch(function () {});
+                safePlay(target, "BGM");
             }
         }
     }
 
     function getStatus() {
         return {
-            initialized,
-            audioUnlocked,
-            muted,
-            bgmVolume,
-            seVolume,
+            initialized: initialized,
+            audioUnlocked: audioUnlocked,
+            muted: muted,
+            bgmVolume: bgmVolume,
+            seVolume: seVolume,
             bgmPlaying: isBgmPlaying(),
-            bgmCurrentSrc:
+            currentBgm:
+                currentBgmAudio === titleBgmAudio
+                    ? "title"
+                    : currentBgmAudio === bgmAudio
+                        ? "game"
+                        : "none",
+            titleBgmCurrentSrc:
+                titleBgmAudio
+                    ? titleBgmAudio.currentSrc
+                    : "",
+            gameBgmCurrentSrc:
                 bgmAudio
                     ? bgmAudio.currentSrc
-                    : "",
-            bgmReadyState:
-                bgmAudio
-                    ? bgmAudio.readyState
-                    : -1,
-            bgmNetworkState:
-                bgmAudio
-                    ? bgmAudio.networkState
-                    : -1
+                    : ""
         };
     }
 
@@ -729,36 +919,40 @@
         handleDomReady();
     }
 
-    const RepairLegendSound = Object.freeze({
-        initialize,
-        unlockAudio,
-        startAudioFromUserGesture,
-        playBgm,
-        playTitleBgm,
-        playGameBgm,
-        pauseBgm,
-        stopBgm,
-        isBgmPlaying,
-        playSound,
-        playTap,
-        playBell,
-        playCorrect,
-        playWrong,
-        playRepairComplete,
-        playGaugeFull,
-        playRepairEnd,
-        playCoin,
-        playComboCoin,
-        stopAllSoundEffects,
-        setBgmVolume,
-        setSeVolume,
-        getBgmVolume,
-        getSeVolume,
-        setMuted,
-        toggleMute,
-        isMuted,
-        getStatus
-    });
+    const RepairLegendSound =
+        Object.freeze({
+            initialize: initialize,
+            unlockAudio: unlockAudio,
+            startAudioFromUserGesture:
+                startAudioFromUserGesture,
+            playBgm: playBgm,
+            playTitleBgm: playTitleBgm,
+            playGameBgm: playGameBgm,
+            pauseBgm: pauseBgm,
+            stopBgm: stopBgm,
+            isBgmPlaying: isBgmPlaying,
+            playSound: playSound,
+            playTap: playTap,
+            playBell: playBell,
+            playCorrect: playCorrect,
+            playWrong: playWrong,
+            playRepairComplete:
+                playRepairComplete,
+            playGaugeFull: playGaugeFull,
+            playRepairEnd: playRepairEnd,
+            playCoin: playCoin,
+            playComboCoin: playComboCoin,
+            stopAllSoundEffects:
+                stopAllSoundEffects,
+            setBgmVolume: setBgmVolume,
+            setSeVolume: setSeVolume,
+            getBgmVolume: getBgmVolume,
+            getSeVolume: getSeVolume,
+            setMuted: setMuted,
+            toggleMute: toggleMute,
+            isMuted: isMuted,
+            getStatus: getStatus
+        });
 
     window.RepairLegendSound =
         RepairLegendSound;
