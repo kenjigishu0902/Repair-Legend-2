@@ -531,8 +531,9 @@
 
     function initializeGame() {
 
-        try {
+    alert("initializeGame開始");
 
+    try {
             cacheDomElements();
 
             ensureRepairEndInterface();
