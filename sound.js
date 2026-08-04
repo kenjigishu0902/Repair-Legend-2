@@ -169,6 +169,8 @@
 
         loadSettings();
         muted = false;
+        bgmVolume = 0.38;
+        seVolume = 0.78;
         localStorage.removeItem("repairLegendMuted");
         localStorage.removeItem("repairLegendBgmVolume");
         bgmAudio = getAudioElement(SOUND_IDS.BGM);
