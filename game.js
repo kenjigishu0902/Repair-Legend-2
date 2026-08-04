@@ -531,8 +531,6 @@
 
     function initializeGame() {
 
-    alert("initializeGame開始");
-
     try {
             cacheDomElements();
 
@@ -552,9 +550,7 @@
 
             registerEventListeners();
 
-            resetVisualState({
-            keepStartHidden: true
-});
+            resetVisualState();
 
             updateHud();
 
@@ -790,7 +786,7 @@
                 "必殺技ゲージ"
             );
 
-            panel.innerHTML = 
+            panel.innerHTML = `
                 <div class="repair-end-heading">
                     <span>必殺技ゲージ</span>
                     <strong id="repairEndPercent">0%</strong>
@@ -805,7 +801,7 @@
                     disabled
                     hidden
                 >🔥 リペアエンド！！</button>
-            ;
+            `;
 
             dom.repairPanel.appendChild(
                 panel
@@ -836,10 +832,10 @@
                 "true"
             );
 
-            effect.innerHTML = 
+            effect.innerHTML = `
                 <div class="repair-end-burst"></div>
                 <div class="repair-end-title">リペアエンド！！</div>
-            ;
+            `;
 
             dom.game.appendChild(
                 effect
@@ -1903,9 +1899,9 @@
 
                 button.setAttribute(
                     "aria-label",
-                    ${String.fromCharCode(
+                    `${String.fromCharCode(
                         65 + index
-                    )}：${choiceText}
+                    )}：${choiceText}`
                 );
 
             }
@@ -2220,7 +2216,7 @@
         } else {
 
             showTemporarySpeech(
-                不正解！正解は「${answerResult.correctAnswer}」,
+                `不正解！正解は「${answerResult.correctAnswer}」`,
                 1300
             );
 
@@ -2379,10 +2375,10 @@
             );
 
         dom.repairGauge.style.width =
-            ${percentage}%;
+            `${percentage}%`;
 
         dom.repairPercent.textContent =
-            ${percentage}%;
+            `${percentage}%`;
 
         if (
             percentage >=
@@ -2489,10 +2485,10 @@
             GAME_CONFIG.repairEndGaugeMax;
 
         dom.repairEndGauge.style.width =
-            ${percentage}%;
+            `${percentage}%`;
 
         dom.repairEndPercent.textContent =
-            ${percentage}%;
+            `${percentage}%`;
 
         dom.repairEndPanel.classList.toggle(
             "ready",
@@ -2961,7 +2957,7 @@
         );
 
         dom.rankUpEffect.textContent =
-            LEVEL UP！ LV.${gameState.level};
+            `LEVEL UP！ LV.${gameState.level}`;
 
         RepairLegendSound.playCoin();
 
@@ -3007,7 +3003,7 @@
     function showRankUpEffect(rank) {
 
         dom.rankUpEffect.textContent =
-            RANK UP！ ${rank};
+            `RANK UP！ ${rank}`;
 
         restartEffectClass(
             dom.rankUpEffect,
@@ -3126,9 +3122,9 @@
                 )
             );
 
-        return ¥${safeValue.toLocaleString(
+        return `¥${safeValue.toLocaleString(
             "ja-JP"
-        )};
+        )}`;
 
     }
 
@@ -3147,7 +3143,7 @@
         }
 
         dom.comboEffect.textContent =
-            ${gameState.combo} COMBO！;
+            `${gameState.combo} COMBO！`;
 
         restartEffectClass(
             dom.comboEffect,
@@ -3159,7 +3155,7 @@
     function showCoinEffect(amount) {
 
         dom.coinEffect.textContent =
-            ＋${formatMoney(amount)};
+            `＋${formatMoney(amount)}`;
 
         restartEffectClass(
             dom.coinEffect,
@@ -3431,51 +3427,6 @@
     );
 
 }
-
-        hideReceptionWindow();
-
-        hideQuizWindow();
-
-        hideResultWindow();
-
-        hideRepairPanel();
-
-        hideSpeech();
-
-        clearAnswerStyles();
-
-        resetCharacterClasses();
-
-        dom.repairGauge.style.width =
-            "0%";
-
-        dom.repairPercent.textContent =
-            "0%";
-
-        updateRepairEndGauge();
-
-        dom.game.classList.remove(
-            "repair-end-active"
-        );
-
-        if (dom.repairEndEffect) {
-
-            dom.repairEndEffect.classList.remove(
-                "show"
-            );
-
-        }
-
-        dom.timer.textContent =
-            String(
-                GAME_CONFIG.quizTimeLimit
-            );
-
-        dom.timer.classList.remove(
-            "warning"
-        );
-
-    }
 
     function resetCharacterClasses() {
 
@@ -3791,4 +3742,3 @@ if (document.readyState === "loading") {
 }
 
 })();
-alert("quiz.js読み込みOK");
