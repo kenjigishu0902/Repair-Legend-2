@@ -168,7 +168,9 @@
         }
 
         loadSettings();
-
+        muted = false;
+        localStorage.removeItem("repairLegendMuted");
+        localStorage.removeItem("repairLegendBgmVolume");
         bgmAudio = getAudioElement(SOUND_IDS.BGM);
         titleBgmAudio = getAudioElement(SOUND_IDS.TITLE_BGM, false);
 
