@@ -1344,53 +1344,72 @@
        GAME START
        ===================================================== */
 
-    async function startTitleBgm() {
+    function startTitleBgm() {
 
-        if (gameState.titleBgmStarted) {
+    if (gameState.titleBgmStarted) {
+        return;
+    }
+
+    if (!window.RepairLegendSound) {
+        return;
+    }
+
+    gameState.titleBgmStarted = true;
+
+    try {
+
+        /*
+         * iPhone・iPadでは、ユーザー操作中に
+         * 直接play()まで進める必要があります。
+         */
+        if (
+            typeof RepairLegendSound
+                .startAudioFromUserGesture ===
+            "function"
+        ) {
+
+            RepairLegendSound
+                .startAudioFromUserGesture();
 
             return;
-
         }
 
-        gameState.titleBgmStarted = true;
+        if (
+            typeof RepairLegendSound
+                .playTitleBgm ===
+            "function"
+        ) {
 
-        try {
+            RepairLegendSound.playTitleBgm({
+                restart: false,
+                fadeIn: false
+            });
 
-            if (
-                window.RepairLegendSound &&
-                typeof RepairLegendSound.unlockAudio ===
-                    "function"
-            ) {
-
-                await RepairLegendSound.unlockAudio();
-
-            }
-
-            if (
-                window.RepairLegendSound &&
-                typeof RepairLegendSound.playBgm ===
-                    "function"
-            ) {
-
-                RepairLegendSound.playBgm({
-                    restart: false,
-                    fadeIn: true
-                });
-
-            }
-
-        } catch (error) {
-
-            gameState.titleBgmStarted = false;
-
-            console.warn(
-                "タイトルBGMを開始できませんでした。",
-                error
-            );
-
+            return;
         }
 
+        if (
+            typeof RepairLegendSound
+                .playBgm ===
+            "function"
+        ) {
+
+            RepairLegendSound.playBgm({
+                restart: false,
+                fadeIn: false
+            });
+        }
+
+    } catch (error) {
+
+        gameState.titleBgmStarted = false;
+
+        console.warn(
+            "タイトルBGMを開始できませんでした。",
+            error
+        );
     }
+}
 
 
     function playButtonSound() {
