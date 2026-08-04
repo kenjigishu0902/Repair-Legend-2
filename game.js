@@ -1,7 +1,6 @@
 /* =========================================================
    Repair Legend Ver2
-   game.js
-
+   document.addEventListener(
    ゲーム進行
    ・タイトル画面
    ・お客様来店
@@ -3770,14 +3769,24 @@
     window.RepairLegendGame =
         RepairLegendGame;
 
-    /* =====================================================
-       AUTO START
-       ===================================================== */
+   /* =====================================================
+   AUTO START
+   ===================================================== */
 
-    if (
-        document.readyState ===
-        "loading"
-    ) {
+if (document.readyState === "loading") {
 
-        document.addEventListener(
-     
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeGame,
+        {
+            once: true
+        }
+    );
+
+} else {
+
+    initializeGame();
+
+}
+
+})();
