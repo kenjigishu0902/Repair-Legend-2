@@ -3791,3 +3791,4 @@ if (document.readyState === "loading") {
 }
 
 })();
+alert("quiz.js読み込みOK");
