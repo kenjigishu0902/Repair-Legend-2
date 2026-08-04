@@ -525,7 +525,9 @@
 
         sequenceId: 0,
 
-        speechTimeoutId: null
+        speechTimeoutId: null,
+
+        titleBgmStarted: false
 
     };
 
@@ -630,7 +632,8 @@
             playCoin: function () {},
             playComboCoin: function () {},
             playRepairComplete: function () {},
-            playRepairEnd: function () {}
+            playRepairEnd: function () {},
+            playTap: function () {}
         });
 
     }
@@ -1103,6 +1106,32 @@
                 100% { transform: translateY(0) scale(1); }
             }
 
+            #speech.speaker-feni {
+                left: clamp(18px, 18vw, 290px);
+                right: auto;
+                transform-origin: left bottom;
+            }
+
+            #speech.speaker-feni::before {
+                left: 29%;
+                right: auto;
+                border-top: 27px solid #11151a;
+                border-left: 5px solid transparent;
+                border-right: 18px solid transparent;
+            }
+
+            #speech.speaker-feni::after {
+                left: calc(29% + 4px);
+                right: auto;
+                border-top: 20px solid #fffdf3;
+                border-left: 3px solid transparent;
+                border-right: 12px solid transparent;
+            }
+
+            #speech.speaker-customer {
+                left: auto;
+            }
+
             @media (prefers-reduced-motion: reduce) {
                 .repair-end-panel.ready,
                 .repair-end-button:not(:disabled),
@@ -1234,6 +1263,33 @@
             handleStartButton
         );
 
+        if (dom.startScreen) {
+
+            dom.startScreen.addEventListener(
+                "pointerdown",
+                startTitleBgm,
+                { once: true, passive: true }
+            );
+
+            dom.startScreen.addEventListener(
+                "touchstart",
+                startTitleBgm,
+                { once: true, passive: true }
+            );
+
+        }
+
+        document.querySelectorAll("button").forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    playButtonSound
+                );
+
+            }
+        );
+
         dom.acceptButton.addEventListener(
             "click",
             handleAcceptButton
@@ -1288,6 +1344,130 @@
        GAME START
        ===================================================== */
 
+    async function startTitleBgm() {
+
+        if (gameState.titleBgmStarted) {
+
+            return;
+
+        }
+
+        gameState.titleBgmStarted = true;
+
+        try {
+
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.unlockAudio ===
+                    "function"
+            ) {
+
+                await RepairLegendSound.unlockAudio();
+
+            }
+
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.playBgm ===
+                    "function"
+            ) {
+
+                RepairLegendSound.playBgm({
+                    restart: false,
+                    fadeIn: true
+                });
+
+            }
+
+        } catch (error) {
+
+            gameState.titleBgmStarted = false;
+
+            console.warn(
+                "タイトルBGMを開始できませんでした。",
+                error
+            );
+
+        }
+
+    }
+
+
+    function playButtonSound() {
+
+        if (!window.RepairLegendSound) {
+
+            return;
+
+        }
+
+        const soundNames = [
+            "playTap",
+            "playButton",
+            "playClick"
+        ];
+
+        for (const soundName of soundNames) {
+
+            if (
+                typeof RepairLegendSound[soundName] ===
+                "function"
+            ) {
+
+                try {
+
+                    RepairLegendSound[soundName]();
+
+                } catch (error) {
+
+                    console.warn(
+                        "ボタン音を再生できませんでした。",
+                        error
+                    );
+
+                }
+
+                return;
+
+            }
+
+        }
+
+        const tapAudio =
+            document.getElementById("tapSound");
+
+        if (tapAudio) {
+
+            try {
+
+                tapAudio.currentTime = 0;
+
+                const playResult = tapAudio.play();
+
+                if (
+                    playResult &&
+                    typeof playResult.catch ===
+                        "function"
+                ) {
+
+                    playResult.catch(function () {});
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "ボタン音を再生できませんでした。",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+
     async function handleStartButton() {
 
         if (gameState.started) {
@@ -1301,6 +1481,8 @@
         gameState.processing = true;
 
         gameState.sequenceId += 1;
+
+        await startTitleBgm();
 
         dom.startScreen.classList.add(
             "hidden"
@@ -1356,7 +1538,7 @@
             ) {
 
                 RepairLegendSound.playBgm({
-                    restart: true,
+                    restart: false,
                     fadeIn: true
                 });
 
@@ -1602,7 +1784,8 @@
         }
 
         showSpeech(
-            "いらっしゃいませ！"
+            "いらっしゃいませ！",
+            "feni"
         );
 
         await wait(650);
@@ -1614,7 +1797,8 @@
         }
 
         showSpeech(
-            gameState.currentCustomer.opening
+            gameState.currentCustomer.opening,
+            "customer"
         );
 
         await wait(
@@ -1773,13 +1957,15 @@
         hideReceptionWindow();
 
         showSpeech(
-            gameState.currentCustomer.accepted
+            gameState.currentCustomer.accepted,
+            "customer"
         );
 
         await wait(1000);
 
         showSpeech(
-            gameState.currentCustomer.repairing
+            gameState.currentCustomer.repairing,
+            "feni"
         );
 
         dom.feni.classList.add("repairing");
@@ -1789,7 +1975,8 @@
         dom.feni.classList.remove("repairing");
 
         showSpeech(
-            "この症状を疑おう！"
+            "この症状を疑おう！",
+            "feni"
         );
 
         await wait(700);
@@ -2639,7 +2826,8 @@ dom.question.textContent =
         );
 
         showSpeech(
-            "リペアエンド！！"
+            "リペアエンド！！",
+            "feni"
         );
 
         playRepairEndSound();
@@ -2772,13 +2960,15 @@ dom.question.textContent =
         RepairLegendSound.playCoin();
 
         showSpeech(
-            "修理完了です！"
+            "修理完了です！",
+            "feni"
         );
 
         await wait(650);
 
         showSpeech(
-            gameState.currentCustomer.completed
+            gameState.currentCustomer.completed,
+            "customer"
         );
 
         await wait(
@@ -3266,7 +3456,7 @@ dom.question.textContent =
        SPEECH
        ===================================================== */
 
-    function showSpeech(text) {
+    function showSpeech(text, speaker = "customer") {
 
         clearTimeout(
             gameState.speechTimeoutId
@@ -3274,6 +3464,22 @@ dom.question.textContent =
 
         dom.speechText.textContent =
             String(text || "");
+
+        dom.speech.classList.remove(
+            "speaker-feni",
+            "speaker-customer"
+        );
+
+        dom.speech.classList.add(
+            speaker === "feni"
+                ? "speaker-feni"
+                : "speaker-customer"
+        );
+
+        dom.speech.dataset.speaker =
+            speaker === "feni"
+                ? "feni"
+                : "customer";
 
         dom.speech.classList.add(
             "show"
