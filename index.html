@@ -1,62 +1,32 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#20252b">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta
-        name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent"
-    >
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-
-    <meta
-        name="description"
-        content="スマホ修理店経営と修理知識100問に挑戦するブラウザゲーム、Repair Legend Ver2。"
-    >
+    <meta name="description" content="スマホ修理店経営と修理知識100問に挑戦するブラウザゲーム、Repair Legend Ver2。">
 
     <title>Repair Legend Ver2</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="./style.css?v=21"
-    >
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css?v=2">
 </head>
 
 <body>
 
-<main
-    id="game"
-    aria-label="Repair Legend ゲーム画面"
->
+<main id="game" aria-label="Repair Legend ゲーム画面">
 
     <!--========================
         BACKGROUND
     ========================-->
 
-    <div
-        id="background"
-        aria-hidden="true"
-    >
+    <div id="background" aria-hidden="true">
         <div id="wall"></div>
         <div id="floor"></div>
 
@@ -73,10 +43,7 @@
         HUD
     ========================-->
 
-    <header
-        id="hud"
-        aria-label="ゲーム状況"
-    >
+    <header id="hud" aria-label="ゲーム状況">
         <div class="hudBox">
             <div class="label">LEVEL</div>
             <div id="level">1</div>
@@ -102,17 +69,13 @@
         CUSTOMER AREA
     ========================-->
 
-    <section
-        id="customerArea"
-        aria-label="接客エリア"
-    >
+    <section id="customerArea" aria-label="接客エリア">
         <div id="customer">
             <img
                 src="./customer.png"
                 id="customerSprite"
                 alt="来店したお客様"
-                draggable="false"
-            >
+                draggable="false">
         </div>
 
         <div id="feni">
@@ -120,19 +83,11 @@
                 src="./feni.png"
                 id="feniSprite"
                 alt="修理スタッフのフェニちゃん"
-                draggable="false"
-            >
+                draggable="false">
         </div>
 
-        <div
-            id="speech"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-        >
-            <div id="speechText">
-                いらっしゃいませ！
-            </div>
+        <div id="speech" role="status" aria-live="polite" aria-atomic="true">
+            <div id="speechText">いらっしゃいませ！</div>
         </div>
     </section>
 
@@ -140,46 +95,27 @@
         REPAIR GAUGES
     ========================-->
 
-    <section
-        id="repairPanel"
-        aria-label="修理進行と必殺技ゲージ"
-    >
-        <div class="panelTitle">
-            修理進行
-        </div>
+    <section id="repairPanel" aria-label="修理進行と必殺技ゲージ">
+        <div class="panelTitle">修理進行</div>
 
-        <div
-            id="repairGaugeFrame"
-            aria-hidden="true"
-        >
+        <div id="repairGaugeFrame" aria-hidden="true">
             <div id="repairGauge"></div>
         </div>
 
-        <div id="repairPercent">
-            0%
-        </div>
+        <div id="repairPercent">0%</div>
 
         <section
             id="repairEndPanel"
             class="repair-end-panel"
-            aria-label="必殺技ゲージ"
-        >
+            aria-label="必殺技ゲージ">
+
             <div class="repair-end-heading">
                 <span>必殺技ゲージ</span>
-
-                <strong id="repairEndPercent">
-                    0%
-                </strong>
+                <strong id="repairEndPercent">0%</strong>
             </div>
 
-            <div
-                class="repair-end-track"
-                aria-hidden="true"
-            >
-                <div
-                    id="repairEndGauge"
-                    class="repair-end-gauge"
-                ></div>
+            <div class="repair-end-track" aria-hidden="true">
+                <div id="repairEndGauge" class="repair-end-gauge"></div>
             </div>
 
             <button
@@ -187,8 +123,7 @@
                 class="repair-end-button"
                 type="button"
                 disabled
-                hidden
-            >
+                hidden>
                 🔥 リペアエンド！！
             </button>
         </section>
@@ -198,95 +133,55 @@
         EFFECTS
     ========================-->
 
-    <div
-        id="effects"
-        aria-live="polite"
-        aria-atomic="true"
-    >
+    <div id="effects" aria-live="polite" aria-atomic="true">
         <div id="comboEffect"></div>
         <div id="coinEffect"></div>
         <div id="rankUpEffect"></div>
-
-        <div id="completeEffect">
-            修理完了！
-        </div>
+        <div id="completeEffect">修理完了！</div>
     </div>
 
     <div
-        id="repairEndEffect"
-        class="repair-end-effect"
-        aria-hidden="true"
-    >
-        <div class="repair-end-dark"></div>
+    id="repairEndEffect"
+    class="repair-end-effect"
+    aria-hidden="true">
 
-        <div class="repair-end-speed-lines"></div>
+    <div class="repair-end-dark"></div>
+    <div class="repair-end-speed-lines"></div>
 
-        <div class="repair-end-cutin">
-            <div class="repair-end-cutin-bg"></div>
+    <div class="repair-end-cutin">
+        <div class="repair-end-cutin-bg"></div>
 
-            <img
-                src="./feni.png"
-                class="repair-end-cutin-character"
-                alt=""
-                draggable="false"
-            >
+        <img
+            src="./feni.png"
+            class="repair-end-cutin-character"
+            alt=""
+            draggable="false">
 
-            <div class="repair-end-cutin-message">
-                修理不能？<br>
-                その言葉は俺には通用しない。
-            </div>
+        <div class="repair-end-cutin-message">
+            修理不能？<br>
+            その言葉は俺には通用しない。
         </div>
-
-        <div class="repair-end-slash"></div>
-
-        <div class="repair-end-title-wrap">
-            <div class="repair-end-subtitle">
-                PHOENIX SPECIAL ATTACK
-            </div>
-
-            <div class="repair-end-title">
-                リペアエンド！！
-            </div>
-        </div>
-
-        <div class="repair-end-flash"></div>
     </div>
+
+    <div class="repair-end-slash"></div>
+
+    <div class="repair-end-title-wrap">
+        <div class="repair-end-subtitle">PHOENIX SPECIAL ATTACK</div>
+        <div class="repair-end-title">リペアエンド！！</div>
+    </div>
+
+    <div class="repair-end-flash"></div>
+</div>
 
     <!--========================
         TOUCH MAP
     ========================-->
 
-    <div
-        id="touchMap"
-        aria-label="店内操作エリア"
-    >
-        <button
-            type="button"
-            class="touchSpot"
-            id="spotCounter"
-            aria-label="受付カウンター"
-        ></button>
-
-        <button
-            type="button"
-            class="touchSpot"
-            id="spotPoster"
-            aria-label="店内ポスター"
-        ></button>
-
-        <button
-            type="button"
-            class="touchSpot"
-            id="spotShelf"
-            aria-label="パーツ棚"
-        ></button>
-
-        <button
-            type="button"
-            class="touchSpot"
-            id="spotDoor"
-            aria-label="入口"
-        ></button>
+    <div id="touchMap" aria-label="店内操作エリア">
+        <button type="button" class="touchSpot" id="spotCounter" aria-label="受付カウンター"></button>
+        <button type="button" class="touchSpot" id="spotPoster" aria-label="店内ポスター"></button>
+        <button type="button" class="touchSpot" id="spotShelf" aria-label="パーツ棚"></button>
+        <button type="button" class="touchSpot" id="spotDoor" aria-label="入口"></button>
     </div>
 
 </main>
@@ -295,62 +190,23 @@
     QUIZ WINDOW
 =====================================-->
 
-<section
-    id="quizWindow"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="question"
->
+<section id="quizWindow" role="dialog" aria-modal="true" aria-labelledby="question">
     <div id="quizTop">
-        <div id="category">
-            iPhone
-        </div>
+        <div id="category">iPhone</div>
 
-        <div
-            id="timerBox"
-            aria-label="残り時間"
-        >
+        <div id="timerBox" aria-label="残り時間">
             <span>TIME</span>
             <span id="timer">10</span>
         </div>
     </div>
 
-    <div id="question">
-        修理知識クイズがここに表示されます。
-    </div>
+    <div id="question">修理知識クイズがここに表示されます。</div>
 
     <div id="answers">
-        <button
-            type="button"
-            class="answerBtn"
-            data-answer="0"
-        >
-            A
-        </button>
-
-        <button
-            type="button"
-            class="answerBtn"
-            data-answer="1"
-        >
-            B
-        </button>
-
-        <button
-            type="button"
-            class="answerBtn"
-            data-answer="2"
-        >
-            C
-        </button>
-
-        <button
-            type="button"
-            class="answerBtn"
-            data-answer="3"
-        >
-            D
-        </button>
+        <button type="button" class="answerBtn" data-answer="0">A</button>
+        <button type="button" class="answerBtn" data-answer="1">B</button>
+        <button type="button" class="answerBtn" data-answer="2">C</button>
+        <button type="button" class="answerBtn" data-answer="3">D</button>
     </div>
 </section>
 
@@ -359,7 +215,6 @@
 =====================================-->
 
 <div id="startScreen">
-
     <div id="logo">
         <h1>REPAIR LEGEND</h1>
         <h2>Ver2</h2>
@@ -369,65 +224,32 @@
         <img
             src="./feni.png"
             alt="フェニちゃん"
-            draggable="false"
-        >
+            draggable="false">
     </div>
 
     <div id="description">
         スマホ修理店経営 × 修理知識100問
     </div>
 
-    <button
-        type="button"
-        id="startButton"
-    >
-        GAME START
-    </button>
-
+    <button type="button" id="startButton">GAME START</button>
 </div>
 
 <!--====================================
     RECEPTION
 =====================================-->
 
-<div
-    id="receptionWindow"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="receptionTitle"
->
-    <div
-        class="windowTitle"
-        id="receptionTitle"
-    >
-        お客様対応
-    </div>
-
-    <div id="customerSymptom">
-        症状がここへ表示されます。
-    </div>
-
-    <button
-        type="button"
-        id="acceptButton"
-    >
-        受付する
-    </button>
+<div id="receptionWindow" role="dialog" aria-modal="true" aria-labelledby="receptionTitle">
+    <div class="windowTitle" id="receptionTitle">お客様対応</div>
+    <div id="customerSymptom">症状がここへ表示されます。</div>
+    <button type="button" id="acceptButton">受付する</button>
 </div>
 
 <!--====================================
     RESULT
 =====================================-->
 
-<div
-    id="resultWindow"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="resultTitle"
->
-    <h2 id="resultTitle">
-        RESULT
-    </h2>
+<div id="resultWindow" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+    <h2 id="resultTitle">RESULT</h2>
 
     <div class="resultRow">
         <span>ランク</span>
@@ -444,141 +266,62 @@
         <span id="resultMoney">¥0</span>
     </div>
 
-    <button
-        type="button"
-        id="nextCustomer"
-    >
-        次のお客様へ
-    </button>
+    <button type="button" id="nextCustomer">次のお客様へ</button>
 </div>
 
 <!--====================================
     AUDIO
 =====================================-->
 
-<audio
-    id="bgm"
-    loop
-    preload="auto"
-    playsinline
->
-    <source
-        src="./bgm.mp3"
-        type="audio/mpeg"
-    >
+<audio id="bgm" loop preload="auto" playsinline>
+    <source src="bgm.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="titleBgm"
-    loop
-    preload="auto"
-    playsinline
->
-    <source
-        src="./title.mp3"
-        type="audio/mpeg"
-    >
+<audio id="tapSound" preload="auto" playsinline>
+    <source src="tap.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="tapSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./tap.mp3"
-        type="audio/mpeg"
-    >
+<audio id="bellSound" preload="auto" playsinline>
+    <source src="bell.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="bellSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./bell.mp3"
-        type="audio/mpeg"
-    >
+<audio id="correctSound" preload="auto" playsinline>
+    <source src="correct.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="correctSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./correct.mp3"
-        type="audio/mpeg"
-    >
+<audio id="wrongSound" preload="auto" playsinline>
+    <source src="wrong.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="wrongSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./wrong.mp3"
-        type="audio/mpeg"
-    >
+<audio id="repairSound" preload="auto" playsinline>
+    <source src="repair.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="repairSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./repair.mp3"
-        type="audio/mpeg"
-    >
+<audio id="coinSound" preload="auto" playsinline>
+    <source src="coin.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="coinSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./coin.mp3"
-        type="audio/mpeg"
-    >
+<audio id="titleBgm" loop preload="auto" playsinline>
+    <source src="title.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="gaugeFullSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./gauge-full.mp3"
-        type="audio/mpeg"
-    >
+<audio id="gaugeFullSound" preload="auto" playsinline>
+    <source src="gauge-full.mp3" type="audio/mpeg">
 </audio>
 
-<audio
-    id="repairEndSound"
-    preload="auto"
-    playsinline
->
-    <source
-        src="./repair-end.mp3"
-        type="audio/mpeg"
-    >
+<audio id="repairEndSound" preload="auto" playsinline>
+    <source src="repair-end.mp3" type="audio/mpeg">
 </audio>
 
-<noscript>
-    このゲームを遊ぶにはJavaScriptを有効にしてください。
-</noscript>
+<noscript>このゲームを遊ぶにはJavaScriptを有効にしてください。</noscript>
 
 <!--====================================
     SCRIPTS
 =====================================-->
 
-<script src="./quiz.js?v=23"></script>
-<script src="./sound.js?v=23"></script>
-<script src="./game.js?v=23"></script>
+<script src="./quiz.js?v=3"></script>
+<script src="./sound.js?v=3"></script>
+<script src="./game.js?v=6"></script>
 
 </body>
 </html>
