@@ -1,6 +1,7 @@
 /* =========================================================
    Repair Legend Ver2
-   document.addEventListener(
+   game.js
+
    ゲーム進行
    ・タイトル画面
    ・お客様来店
@@ -80,6 +81,7 @@
 
     });
 
+
     /* =====================================================
        GAME PHASE
        ===================================================== */
@@ -107,6 +109,7 @@
         CUSTOMER_LEAVING: "customerLeaving"
 
     });
+
 
     /* =====================================================
        RANK DATA
@@ -150,6 +153,7 @@
         }
 
     ]);
+
 
     /* =====================================================
        CUSTOMER DATA
@@ -339,6 +343,7 @@
 
     ]);
 
+
     /* =====================================================
        SHOP INTERACTIONS
        ===================================================== */
@@ -370,6 +375,7 @@
         ]
 
     });
+
 
     /* =====================================================
        DOM REFERENCES
@@ -457,6 +463,7 @@
 
     };
 
+
     /* =====================================================
        GAME STATE
        ===================================================== */
@@ -519,11 +526,10 @@
 
         sequenceId: 0,
 
-        speechTimeoutId: null,
-
-        titleBgmStarted: false
+        speechTimeoutId: null
 
     };
+
 
     /* =====================================================
        INITIALIZATION
@@ -531,7 +537,8 @@
 
     function initializeGame() {
 
-    try {
+        try {
+
             cacheDomElements();
 
             ensureRepairEndInterface();
@@ -601,6 +608,7 @@
 
     }
 
+
     function ensureSoundSystem() {
 
         if (window.RepairLegendSound) {
@@ -627,6 +635,7 @@
         });
 
     }
+
 
     function cacheDomElements() {
 
@@ -753,6 +762,7 @@
 
     }
 
+
     function ensureRepairEndInterface() {
 
         if (!dom.game || !dom.repairPanel) {
@@ -871,6 +881,7 @@
         }
 
     }
+
 
     function injectRepairEndStyles() {
 
@@ -1065,32 +1076,6 @@
                 100% { transform: translateY(0) scale(1); }
             }
 
-            #speech.speaker-feni {
-                left: clamp(18px, 18vw, 290px);
-                right: auto;
-                transform-origin: left bottom;
-            }
-
-            #speech.speaker-feni::before {
-                left: 29%;
-                right: auto;
-                border-top: 27px solid #11151a;
-                border-left: 5px solid transparent;
-                border-right: 18px solid transparent;
-            }
-
-            #speech.speaker-feni::after {
-                left: calc(29% + 4px);
-                right: auto;
-                border-top: 20px solid #fffdf3;
-                border-left: 3px solid transparent;
-                border-right: 12px solid transparent;
-            }
-
-            #speech.speaker-customer {
-                left: auto;
-            }
-
             @media (prefers-reduced-motion: reduce) {
                 .repair-end-panel.ready,
                 .repair-end-button:not(:disabled),
@@ -1109,6 +1094,7 @@
 
     }
 
+
     function configureGameLabels() {
 
         if (dom.nextCustomer) {
@@ -1124,6 +1110,7 @@
         }
 
     }
+
 
     function validateRequiredSystems() {
 
@@ -1212,16 +1199,8 @@
 
     }
 
-    function registerEventListeners() {
 
-        dom.startButton.addEventListener(
-            "pointerdown",
-            startTitleBgm,
-            {
-                once: true,
-                passive: true
-            }
-        );
+    function registerEventListeners() {
 
         dom.startButton.addEventListener(
             "click",
@@ -1277,81 +1256,10 @@
 
     }
 
+
     /* =====================================================
        GAME START
        ===================================================== */
-
-    function startTitleBgm() {
-
-        if (gameState.titleBgmStarted) {
-
-            return;
-
-        }
-
-        if (!window.RepairLegendSound) {
-
-            return;
-
-        }
-
-        gameState.titleBgmStarted = true;
-
-        try {
-
-            if (
-                typeof RepairLegendSound
-                    .startAudioFromUserGesture ===
-                "function"
-            ) {
-
-                RepairLegendSound
-                    .startAudioFromUserGesture();
-
-                return;
-
-            }
-
-            if (
-                typeof RepairLegendSound
-                    .playTitleBgm ===
-                "function"
-            ) {
-
-                RepairLegendSound.playTitleBgm({
-                    restart: false,
-                    fadeIn: false
-                });
-
-                return;
-
-            }
-
-            if (
-                typeof RepairLegendSound
-                    .playBgm ===
-                "function"
-            ) {
-
-                RepairLegendSound.playTitleBgm({
-                restart: false,
-                fadeIn: false
-            });
-
-            }
-
-        } catch (error) {
-
-            gameState.titleBgmStarted = false;
-
-            console.warn(
-                "タイトルBGMを開始できませんでした。",
-                error
-            );
-
-        }
-
-    }
 
     async function handleStartButton() {
 
@@ -1373,7 +1281,15 @@
 
         try {
 
-            startTitleBgm();
+            if (
+                window.RepairLegendSound &&
+                typeof RepairLegendSound.stopBgm ===
+                    "function"
+            ) {
+
+                RepairLegendSound.stopBgm();
+
+            }
 
             if (
                 window.RepairLegendSound &&
@@ -1381,7 +1297,7 @@
                     "function"
             ) {
 
-                RepairLegendSound.playGameBgm({
+                await RepairLegendSound.playGameBgm({
                     restart: true,
                     fadeIn: false
                 });
@@ -1392,7 +1308,7 @@
                     "function"
             ) {
 
-                RepairLegendSound.playBgm({
+                await RepairLegendSound.playBgm({
                     restart: true,
                     fadeIn: false
                 });
@@ -1402,7 +1318,7 @@
         } catch (error) {
 
             console.warn(
-                "音声の開始に失敗しました。無音でゲームを続行します。",
+                "ゲームBGMの開始に失敗しました。無音でゲームを続行します。",
                 error
             );
 
@@ -1416,7 +1332,7 @@
 
             gameState.processing = false;
 
-            startNextCustomer();
+            await startNextCustomer();
 
         } catch (error) {
 
@@ -1503,13 +1419,12 @@
 
         }
 
-        resetVisualState({
-        keepStartHidden: true
-});
+        resetVisualState();
 
         updateHud();
 
     }
+
 
     /* =====================================================
        CUSTOMER FLOW
@@ -1592,8 +1507,7 @@
         }
 
         showSpeech(
-            "いらっしゃいませ！",
-            "feni"
+            "いらっしゃいませ！"
         );
 
         await wait(650);
@@ -1605,8 +1519,7 @@
         }
 
         showSpeech(
-            gameState.currentCustomer.opening,
-            "customer"
+            gameState.currentCustomer.opening
         );
 
         await wait(
@@ -1624,6 +1537,7 @@
         gameState.processing = false;
 
     }
+
 
     function resetCustomerSession() {
 
@@ -1650,6 +1564,7 @@
         clearAnswerStyles();
 
     }
+
 
     function selectCustomerScenario() {
 
@@ -1688,6 +1603,7 @@
 
     }
 
+
     function prepareCustomerForEntrance() {
 
         dom.customer.className =
@@ -1699,6 +1615,7 @@
             "customer-large";
 
     }
+
 
     function showReceptionWindow() {
 
@@ -1721,6 +1638,7 @@
 
     }
 
+
     function hideReceptionWindow() {
 
         dom.receptionWindow.classList.remove(
@@ -1730,6 +1648,7 @@
         dom.acceptButton.disabled = false;
 
     }
+
 
     async function handleAcceptButton() {
 
@@ -1786,6 +1705,7 @@
 
     }
 
+
     /* =====================================================
        QUIZ FLOW
        ===================================================== */
@@ -1836,6 +1756,7 @@
 
     }
 
+
     function getQuestionForCurrentCustomer() {
 
         let question = null;
@@ -1867,6 +1788,7 @@
         return question;
 
     }
+
 
     function renderCurrentQuestion() {
 
@@ -1913,11 +1835,13 @@
 
     }
 
+
     function showQuizWindow() {
 
         dom.quizWindow.classList.add("show");
 
     }
+
 
     function hideQuizWindow() {
 
@@ -1928,6 +1852,7 @@
         );
 
     }
+
 
     function handleAnswerButton(event) {
 
@@ -1970,6 +1895,7 @@
         );
 
     }
+
 
     async function processAnswer(
         selectedIndex,
@@ -2049,6 +1975,7 @@
         beginQuizQuestion();
 
     }
+
 
     async function processCorrectAnswer(
         selectedIndex,
@@ -2153,6 +2080,7 @@
 
     }
 
+
     async function processWrongAnswer(
         selectedIndex,
         answerResult,
@@ -2235,6 +2163,7 @@
 
     }
 
+
     /* =====================================================
        QUIZ TIMER
        ===================================================== */
@@ -2293,6 +2222,7 @@
 
     }
 
+
     function stopQuizTimer() {
 
         gameState.timerRunId += 1;
@@ -2312,6 +2242,7 @@
         }
 
     }
+
 
     function setTimerDisplay(value) {
 
@@ -2340,6 +2271,7 @@
 
     }
 
+
     /* =====================================================
        REPAIR GAUGE
        ===================================================== */
@@ -2362,6 +2294,7 @@
         updateRepairGauge();
 
     }
+
 
     function updateRepairGauge() {
 
@@ -2399,6 +2332,7 @@
 
     }
 
+
     function showRepairPanel() {
 
         dom.repairPanel.classList.add(
@@ -2411,6 +2345,7 @@
 
     }
 
+
     function hideRepairPanel() {
 
         dom.repairPanel.classList.remove(
@@ -2418,6 +2353,7 @@
         );
 
     }
+
 
     /* =====================================================
        REPAIR END / SPECIAL MOVE
@@ -2442,6 +2378,7 @@
 
     }
 
+
     function canUseRepairEnd() {
 
         return Boolean(
@@ -2457,6 +2394,7 @@
         );
 
     }
+
 
     function updateRepairEndGauge() {
 
@@ -2511,6 +2449,7 @@
         );
 
     }
+
 
     async function handleRepairEndButton() {
 
@@ -2579,6 +2518,7 @@
 
     }
 
+
     async function playRepairEndSequence() {
 
         dom.game.classList.add(
@@ -2616,6 +2556,7 @@
         hideSpeech();
 
     }
+
 
     function playRepairEndSound() {
 
@@ -2667,6 +2608,7 @@
         }
 
     }
+
 
     /* =====================================================
        REPAIR COMPLETE
@@ -2751,6 +2693,7 @@
 
     }
 
+
     function showCompleteEffect() {
 
         restartEffectClass(
@@ -2759,6 +2702,7 @@
         );
 
     }
+
 
     /* =====================================================
        RESULT
@@ -2795,6 +2739,7 @@
 
     }
 
+
     function hideResultWindow() {
 
         dom.resultWindow.classList.remove(
@@ -2805,6 +2750,7 @@
             false;
 
     }
+
 
     async function handleNextCustomerButton() {
 
@@ -2842,6 +2788,7 @@
 
     }
 
+
     async function customerLeave() {
 
         setPhase(
@@ -2869,6 +2816,7 @@
         );
 
     }
+
 
     /* =====================================================
        EXPERIENCE / LEVEL / RANK
@@ -2931,6 +2879,7 @@
 
     }
 
+
     function getRequiredExperience(level) {
 
         const normalizedLevel =
@@ -2949,6 +2898,7 @@
 
     }
 
+
     function handleLevelUp() {
 
         restartEffectClass(
@@ -2962,6 +2912,7 @@
         RepairLegendSound.playCoin();
 
     }
+
 
     function updateRank() {
 
@@ -3000,6 +2951,7 @@
 
     }
 
+
     function showRankUpEffect(rank) {
 
         dom.rankUpEffect.textContent =
@@ -3013,6 +2965,7 @@
         RepairLegendSound.playRepairComplete();
 
     }
+
 
     /* =====================================================
        REWARD
@@ -3057,6 +3010,7 @@
 
     }
 
+
     /* =====================================================
        HUD
        ===================================================== */
@@ -3085,6 +3039,7 @@
 
     }
 
+
     function updateRankColor() {
 
         const rankColors = {
@@ -3112,6 +3067,7 @@
 
     }
 
+
     function formatMoney(value) {
 
         const safeValue =
@@ -3127,6 +3083,7 @@
         )}`;
 
     }
+
 
     /* =====================================================
        EFFECTS
@@ -3152,6 +3109,7 @@
 
     }
 
+
     function showCoinEffect(amount) {
 
         dom.coinEffect.textContent =
@@ -3163,6 +3121,7 @@
         );
 
     }
+
 
     function restartEffectClass(
         element,
@@ -3198,11 +3157,12 @@
 
     }
 
+
     /* =====================================================
        SPEECH
        ===================================================== */
 
-    function showSpeech(text, speaker = "customer") {
+    function showSpeech(text) {
 
         clearTimeout(
             gameState.speechTimeoutId
@@ -3211,27 +3171,12 @@
         dom.speechText.textContent =
             String(text || "");
 
-        dom.speech.classList.remove(
-            "speaker-feni",
-            "speaker-customer"
-        );
-
-        dom.speech.classList.add(
-            speaker === "feni"
-                ? "speaker-feni"
-                : "speaker-customer"
-        );
-
-        dom.speech.dataset.speaker =
-            speaker === "feni"
-                ? "feni"
-                : "customer";
-
         dom.speech.classList.add(
             "show"
         );
 
     }
+
 
     function hideSpeech() {
 
@@ -3244,6 +3189,7 @@
         );
 
     }
+
 
     function showTemporarySpeech(
         text,
@@ -3270,6 +3216,7 @@
             );
 
     }
+
 
     /* =====================================================
        SHOP INTERACTION
@@ -3320,6 +3267,7 @@
 
     }
 
+
     /* =====================================================
        ANSWER BUTTONS
        ===================================================== */
@@ -3336,6 +3284,7 @@
 
     }
 
+
     function disableAnswerButtons() {
 
         dom.answerButtons.forEach(
@@ -3347,6 +3296,7 @@
         );
 
     }
+
 
     function clearAnswerStyles() {
 
@@ -3366,67 +3316,62 @@
 
     }
 
+
     /* =====================================================
        VISUAL RESET
        ===================================================== */
 
-    function resetVisualState(options = {}) {
-
-    const keepStartHidden =
-        Boolean(options.keepStartHidden);
-
-    if (!keepStartHidden) {
+    function resetVisualState() {
 
         dom.startScreen.classList.remove(
             "hidden"
         );
 
-    }
+        hideReceptionWindow();
 
-    hideReceptionWindow();
+        hideQuizWindow();
 
-    hideQuizWindow();
+        hideResultWindow();
 
-    hideResultWindow();
+        hideRepairPanel();
 
-    hideRepairPanel();
+        hideSpeech();
 
-    hideSpeech();
+        clearAnswerStyles();
 
-    clearAnswerStyles();
+        resetCharacterClasses();
 
-    resetCharacterClasses();
+        dom.repairGauge.style.width =
+            "0%";
 
-    dom.repairGauge.style.width =
-        "0%";
+        dom.repairPercent.textContent =
+            "0%";
 
-    dom.repairPercent.textContent =
-        "0%";
+        updateRepairEndGauge();
 
-    updateRepairEndGauge();
+        dom.game.classList.remove(
+            "repair-end-active"
+        );
 
-    dom.game.classList.remove(
-        "repair-end-active"
-    );
+        if (dom.repairEndEffect) {
 
-    if (dom.repairEndEffect) {
+            dom.repairEndEffect.classList.remove(
+                "show"
+            );
 
-        dom.repairEndEffect.classList.remove(
-            "show"
+        }
+
+        dom.timer.textContent =
+            String(
+                GAME_CONFIG.quizTimeLimit
+            );
+
+        dom.timer.classList.remove(
+            "warning"
         );
 
     }
 
-    dom.timer.textContent =
-        String(
-            GAME_CONFIG.quizTimeLimit
-        );
-
-    dom.timer.classList.remove(
-        "warning"
-    );
-
-}
 
     function resetCharacterClasses() {
 
@@ -3441,6 +3386,7 @@
         );
 
     }
+
 
     /* =====================================================
        PAGE EVENTS
@@ -3461,6 +3407,7 @@
         }
 
     }
+
 
     function handleVisibilityChange() {
 
@@ -3491,6 +3438,7 @@
 
     }
 
+
     /* =====================================================
        STATE
        ===================================================== */
@@ -3506,6 +3454,7 @@
 
     }
 
+
     function isCurrentSequence(
         sequenceId
     ) {
@@ -3516,6 +3465,7 @@
         );
 
     }
+
 
     /* =====================================================
        UTILITY
@@ -3541,6 +3491,7 @@
         );
 
     }
+
 
     /* =====================================================
        DEBUG API
@@ -3623,6 +3574,7 @@
 
     }
 
+
     function forceCorrectAnswer() {
 
         if (
@@ -3645,6 +3597,7 @@
 
     }
 
+
     function forceRepairComplete() {
 
         if (!gameState.started) {
@@ -3664,6 +3617,7 @@
 
     }
 
+
     function fillRepairEndGauge() {
 
         if (!gameState.started) {
@@ -3681,6 +3635,7 @@
 
     }
 
+
     function activateRepairEnd() {
 
         if (!canUseRepairEnd()) {
@@ -3694,6 +3649,7 @@
         return true;
 
     }
+
 
     const RepairLegendGame =
         Object.freeze({
@@ -3718,27 +3674,32 @@
 
         });
 
+
     window.RepairLegendGame =
         RepairLegendGame;
 
-   /* =====================================================
-   AUTO START
-   ===================================================== */
 
-if (document.readyState === "loading") {
+    /* =====================================================
+       AUTO START
+       ===================================================== */
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeGame,
-        {
-            once: true
-        }
-    );
+    if (
+        document.readyState ===
+        "loading"
+    ) {
 
-} else {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeGame,
+            {
+                once: true
+            }
+        );
 
-    initializeGame();
+    } else {
 
-}
+        initializeGame();
+
+    }
 
 })();
