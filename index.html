@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css?v=9">
+    <link rel="stylesheet" href="./style.css?v=6">
 </head>
 
 <body>
@@ -147,12 +147,12 @@
         <div class="repair-end-cutin">
             <img src="./feni.png" class="repair-end-cutin-character" alt="" draggable="false">
         </div>
-        <div class="repair-end-cutin-message">おいどんに直せない物はない……！</div>
+        <div class="repair-end-cutin-message">おいどんに直せない端末は無い！！</div>
         <div class="repair-end-slashes" aria-hidden="true">
             <i></i><i></i><i></i><i></i>
         </div>
         <div class="repair-end-flash" aria-hidden="true"></div>
-        <div class="repair-end-result">正解！</div>
+        <div class="repair-end-result">REPAIR END!!</div>
     </div>
 
     <!--========================
@@ -182,7 +182,12 @@
         </div>
     </div>
 
-    <div id="question">修理知識クイズがここに表示されます。</div>
+    <div id="question" class="question-card">
+        <div class="question-detail"><span>機種</span><strong id="questionDevice">端末</strong></div>
+        <div class="question-detail"><span>症状</span><strong id="questionSymptom">症状を確認中</strong></div>
+        <div class="question-detail"><span>お客様の希望</span><strong id="questionRequest">修理をご希望</strong></div>
+        <div class="question-prompt"><span>質問</span><strong id="questionPrompt">修理知識クイズがここに表示されます。</strong></div>
+    </div>
 
     <div id="answers">
         <button type="button" class="answerBtn" data-answer="0">A</button>
@@ -256,7 +261,7 @@
 =====================================-->
 
 <audio id="bgm" loop preload="auto" playsinline>
-    <source src="./bgm.mp3?v=3" type="audio/mpeg">
+    <source src="./bgm.mp3?v=6" type="audio/mpeg">
 </audio>
 
 <audio id="tapSound" preload="auto" playsinline>
@@ -284,7 +289,7 @@
 </audio>
 
 <audio id="titleBgm" loop preload="auto" playsinline>
-    <source src="./title.mp3?v=3" type="audio/mpeg">
+    <source src="./title.mp3?v=6" type="audio/mpeg">
 </audio>
 
 <audio id="gaugeFullSound" preload="auto" playsinline>
@@ -301,9 +306,9 @@
     SCRIPTS
 =====================================-->
 
-<script src="./quiz.js?v=9"></script>
-<script src="./sound.js?v=9"></script>
-<script src="./game.js?v=9"></script>
+<script src="./quiz.js?v=6"></script>
+<script src="./sound.js?v=6"></script>
+<script src="./game.js?v=6"></script>
 
 </body>
 </html>

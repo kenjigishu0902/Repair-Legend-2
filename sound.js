@@ -200,7 +200,8 @@
             audio.load();
         });
 
-        currentBgmAudio = titleBgmAudio || bgmAudio;
+        // The title and gameplay tracks are deliberately never interchangeable.
+        currentBgmAudio = titleBgmAudio;
 
         registerUnlockEvents();
         registerGlobalButtonSounds();
@@ -232,7 +233,7 @@
         resumeWebAudioContext();
         audioUnlocked = true;
 
-        const target = currentBgmAudio || titleBgmAudio || bgmAudio;
+        const target = currentBgmAudio || titleBgmAudio;
 
         if (!target || muted || !target.paused) {
             return;
@@ -314,7 +315,7 @@
             initialize();
         }
 
-        const target = titleBgmAudio || bgmAudio;
+        const target = titleBgmAudio;
 
         if (!target || muted) {
             return false;
