@@ -4251,3 +4251,259 @@ body { background: #000; }
         font-size: 18px;
     }
 }
+
+/* =========================================================
+   DEVICE-SAFE GAMEPLAY SHELL (v12)
+   The gameplay view is intentionally sized from the visual viewport.
+   These final rules supersede the historic layout layers above.
+   ========================================================= */
+:root {
+    --play-top: calc(var(--safe-top) + 148px);
+    --play-bottom: max(10px, var(--safe-bottom));
+}
+
+html,
+body,
+#game {
+    width: 100%;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#hud {
+    top: 0;
+    height: calc(var(--safe-top) + 76px);
+    padding: calc(var(--safe-top) + 7px) max(9px, var(--safe-right)) 7px max(9px, var(--safe-left));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(4px, 1vw, 12px);
+}
+
+.hudBox {
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(3px, .8vw, 8px);
+    gap: clamp(2px, .7vw, 10px);
+}
+
+.hudBox .label { font-size: clamp(9px, 1.25vw, 15px); }
+.hudBox > div:last-child,
+#money { font-size: clamp(15px, 2.2vw, 27px); }
+
+#game #repairPanel {
+    top: calc(var(--safe-top) + 82px);
+    width: min(calc(100vw - var(--safe-left) - var(--safe-right) - 18px), 1120px);
+    min-height: 58px;
+    max-height: 62px;
+    padding: 6px clamp(7px, 1.2vw, 14px);
+    grid-template-columns: auto minmax(80px, 1fr) auto minmax(150px, .72fr);
+    gap: clamp(5px, 1vw, 12px);
+    overflow: hidden;
+}
+
+#repairGaugeFrame { min-width: 0; height: 18px; }
+.repair-end-panel { min-width: 0; }
+.repair-end-heading { white-space: nowrap; }
+
+#customerArea {
+    inset: var(--play-top) 0 var(--play-bottom);
+    overflow: hidden;
+}
+
+#customer,
+body[data-game-phase="quiz"] #customer,
+body[data-game-phase="answerResult"] #customer,
+body[data-game-phase="repairEnd"] #customer {
+    right: max(8px, var(--safe-right));
+    bottom: 0;
+    width: min(19vw, 270px);
+    height: min(59dvh, 570px);
+    aspect-ratio: 3 / 5;
+}
+
+#feni,
+body[data-game-phase="quiz"] #feni,
+body[data-game-phase="answerResult"] #feni,
+body[data-game-phase="repairEnd"] #feni {
+    left: max(8px, var(--safe-left));
+    bottom: 0;
+    width: min(14vw, 185px);
+    height: min(35dvh, 310px);
+    aspect-ratio: 3 / 5;
+}
+
+#feniSprite,
+#customerSprite { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+
+#quizWindow {
+    top: var(--play-top);
+    bottom: var(--play-bottom);
+    left: 50%;
+    right: auto;
+    width: min(62vw, 900px);
+    height: auto;
+    max-height: none;
+    padding: clamp(9px, 1.3vw, 17px);
+    gap: clamp(7px, 1.1vh, 13px);
+    grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+#quizTop { min-height: 32px; }
+.question-card {
+    padding: clamp(10px, 1.5vw, 20px);
+    font-size: clamp(15px, 1.55vw, 23px);
+    line-height: 1.45;
+    overflow: hidden;
+}
+
+.question-detail,
+.question-prompt {
+    grid-template-columns: clamp(3.25em, 6vw, 4.25em) minmax(0, 1fr);
+    gap: clamp(6px, 1vw, 14px);
+    padding: clamp(5px, .8vh, 10px) 0;
+}
+
+.question-prompt strong { font-size: 1.12em; font-weight: 900; }
+
+#answers {
+    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(44px, 1fr));
+    gap: clamp(7px, 1vw, 12px);
+}
+
+#quizWindow .answerBtn {
+    min-width: 0;
+    min-height: 44px;
+    max-height: none;
+    padding: clamp(7px, 1vh, 12px) 10px clamp(7px, 1vh, 12px) clamp(48px, 5vw, 64px);
+    font-size: clamp(14px, 1.3vw, 19px);
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+#quizWindow .answerBtn::before {
+    left: clamp(8px, 1vw, 14px);
+    width: clamp(30px, 3.2vw, 40px);
+    height: clamp(30px, 3.2vw, 40px);
+    flex: none;
+}
+
+/* Phones in portrait keep readable answers and reserve a visible character rail. */
+@media (max-width: 700px) and (orientation: portrait) {
+    :root {
+        --play-top: calc(var(--safe-top) + 119px);
+        --play-bottom: max(calc(var(--safe-bottom) + 74px), 78px);
+    }
+
+    #hud {
+        height: calc(var(--safe-top) + 58px);
+        padding-block: calc(var(--safe-top) + 4px) 4px;
+    }
+
+    .hudBox { flex-direction: column; border-width: 1px; border-radius: 4px; line-height: 1; }
+    .hudBox .label { font-size: clamp(8px, 2.5vw, 11px); }
+    .hudBox > div:last-child, #money { margin: 0; font-size: clamp(14px, 4.1vw, 19px); }
+
+    #game #repairPanel {
+        top: calc(var(--safe-top) + 62px);
+        min-height: 51px;
+        max-height: 51px;
+        grid-template-columns: auto minmax(55px, 1fr) 34px minmax(96px, .8fr);
+        gap: 4px;
+        padding: 4px 6px;
+    }
+
+    .panelTitle, #repairPercent { font-size: 10px; }
+    #repairGaugeFrame { height: 14px; border-width: 2px; }
+    #game #repairPanel .repair-end-heading { font-size: 9px; }
+    #game #repairPanel .repair-end-track { height: 10px; }
+    #game #repairPanel .repair-end-button { min-height: 24px; padding: 2px 4px; font-size: 9px; }
+
+    #quizWindow { width: min(96vw, 560px); padding: 7px; gap: 5px; }
+    #quizTop { min-height: 26px; }
+    #category, #timerBox { padding: 2px 6px; border-width: 2px; font-size: 11px; }
+    #timer { font-size: 17px; }
+
+    .question-card { padding: 7px 10px; border-width: 2px; font-size: clamp(14px, 3.75vw, 17px); line-height: 1.3; }
+    .question-detail, .question-prompt { grid-template-columns: 3.15em minmax(0, 1fr); gap: 5px; padding: 3px 0; }
+    .question-prompt { border-top-width: 1px; }
+
+    #answers { grid-template-columns: 1fr; grid-template-rows: repeat(4, minmax(44px, 1fr)); gap: 5px; }
+    #quizWindow .answerBtn { min-height: 44px; padding: 4px 8px 4px 45px; border-width: 2px; border-radius: 6px; font-size: clamp(13px, 3.55vw, 16px); }
+    #quizWindow .answerBtn::before { left: 7px; width: 28px; height: 28px; font-size: 16px; }
+
+    #customerArea { inset: auto 0 max(var(--safe-bottom), 2px); height: 74px; z-index: 70; }
+    #customer, body[data-game-phase="quiz"] #customer, body[data-game-phase="answerResult"] #customer, body[data-game-phase="repairEnd"] #customer {
+        right: max(10px, var(--safe-right)); bottom: 0; width: 58px; height: 72px; opacity: 1 !important;
+    }
+    #feni, body[data-game-phase="quiz"] #feni, body[data-game-phase="answerResult"] #feni, body[data-game-phase="repairEnd"] #feni {
+        left: max(10px, var(--safe-left)); bottom: 0; width: 54px; height: 70px; opacity: 1;
+    }
+    #speech { display: none; }
+}
+
+/* Landscape phones: the requested left / centre / right composition. */
+@media (orientation: landscape) and (max-height: 600px) {
+    :root { --play-top: calc(var(--safe-top) + 100px); --play-bottom: max(4px, var(--safe-bottom)); }
+    #hud { height: calc(var(--safe-top) + 46px); padding: calc(var(--safe-top) + 3px) max(8px, var(--safe-right)) 3px max(8px, var(--safe-left)); }
+    .hudBox { min-height: 36px; padding: 1px 4px; flex-direction: row; }
+    .hudBox .label { font-size: clamp(8px, 1.2vw, 11px); }
+    .hudBox > div:last-child, #money { font-size: clamp(13px, 2vw, 18px); }
+
+    #game #repairPanel { top: calc(var(--safe-top) + 49px); min-height: 45px; max-height: 45px; padding: 3px 7px; }
+    #repairGaugeFrame { height: 13px; border-width: 2px; }
+    #game #repairPanel .repair-end-heading { font-size: 9px; }
+    #game #repairPanel .repair-end-track { height: 9px; }
+    #game #repairPanel .repair-end-button { min-height: 22px; padding: 1px 5px; font-size: 9px; }
+
+    #quizWindow { width: min(66vw, 760px); padding: 6px 8px; gap: 4px; }
+    #quizTop { min-height: 23px; }
+    #category, #timerBox { padding: 1px 5px; border-width: 2px; font-size: 10px; }
+    #timer { font-size: 15px; }
+    .question-card { padding: 5px 9px; border-width: 2px; font-size: clamp(12px, 1.7vw, 16px); line-height: 1.2; }
+    .question-detail, .question-prompt { padding: 2px 0; gap: 4px; }
+    #answers { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(44px, 1fr)); gap: 5px; }
+    #quizWindow .answerBtn { min-height: 44px; padding: 4px 7px 4px 43px; border-width: 2px; font-size: clamp(12px, 1.55vw, 15px); }
+    #quizWindow .answerBtn::before { left: 6px; width: 27px; height: 27px; font-size: 15px; }
+
+    #customer, body[data-game-phase="quiz"] #customer, body[data-game-phase="answerResult"] #customer, body[data-game-phase="repairEnd"] #customer { width: min(16vw, 145px); height: calc(100dvh - var(--play-top)); }
+    #feni, body[data-game-phase="quiz"] #feni, body[data-game-phase="answerResult"] #feni, body[data-game-phase="repairEnd"] #feni { width: min(13vw, 120px); height: calc(100dvh - var(--play-top)); }
+    #speech { display: none; }
+}
+
+/* Tall tablets have room for a larger centre card while characters stay flanking it. */
+@media (min-width: 700px) and (orientation: portrait) {
+    #quizWindow { width: min(72vw, 720px); }
+    #customer { width: min(16vw, 190px); }
+    #feni { width: min(13vw, 150px); }
+}
+
+/* The four-second special move always covers the visual viewport without clipping. */
+.repair-end-effect {
+    width: 100vw;
+    height: 100svh;
+    height: 100dvh;
+    overflow: hidden;
+    padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
+
+.repair-end-cutin-character {
+    max-width: min(78vw, 920px);
+    max-height: 92dvh;
+    object-fit: contain;
+}
+
+.repair-end-cutin-message,
+.repair-end-result {
+    width: min(94vw, 1100px);
+    max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 12px);
+    font-size: clamp(24px, min(7vw, 10dvh), 112px);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
