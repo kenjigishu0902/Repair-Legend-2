@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css?v=7">
+    <link rel="stylesheet" href="./style.css?v=8">
 </head>
 
 <body>
@@ -149,7 +149,7 @@
         </div>
         <div class="repair-end-cutin-message">おいどんに直せない端末は無い！！</div>
         <div class="repair-end-slashes" aria-hidden="true">
-            <i></i><i></i><i></i><i></i>
+            <i></i><i></i>
         </div>
         <div class="repair-end-flash" aria-hidden="true"></div>
         <div class="repair-end-result">REPAIR END!!</div>
@@ -185,7 +185,7 @@
     <div id="question" class="question-card">
         <div class="question-detail"><span>機種</span><strong id="questionDevice">端末</strong></div>
         <div class="question-detail"><span>症状</span><strong id="questionSymptom">症状を確認中</strong></div>
-        <div class="question-detail"><span>お客様の希望</span><strong id="questionRequest">修理をご希望</strong></div>
+        <div class="question-detail"><span>希望</span><strong id="questionRequest">修理をご希望</strong></div>
         <div class="question-prompt"><span>質問</span><strong id="questionPrompt">修理知識クイズがここに表示されます。</strong></div>
     </div>
 
@@ -203,9 +203,10 @@
 
 <div id="startScreen">
     <div id="logo">
-        <h1>REPAIR LEGEND</h1>
-        <h2>Ver2</h2>
+        <h1>REPAIR<br><span>LEGEND 2</span></h1>
     </div>
+
+    <div id="titleSubtitle">端末修理クイズRPG</div>
 
     <div id="logoCharacter">
         <img
@@ -214,11 +215,13 @@
             draggable="false">
     </div>
 
-    <div id="description">
-        スマホ修理店経営 × 修理知識100問
-    </div>
+    <button type="button" id="startButton">TAP TO START</button>
 
-    <button type="button" id="startButton">GAME START</button>
+    <nav id="titleMenu" aria-label="タイトルメニュー">
+        <button type="button" data-title-menu="settings">⚙ 設定</button>
+        <button type="button" data-title-menu="ranking">♛ ランキング</button>
+        <button type="button" data-title-menu="collection">▣ 図鑑</button>
+    </nav>
 </div>
 
 <!--====================================
@@ -254,6 +257,7 @@
     </div>
 
     <button type="button" id="nextCustomer">次のお客様へ</button>
+    <button type="button" id="returnTitle">タイトルへ戻る</button>
 </div>
 
 <!--====================================
@@ -261,43 +265,43 @@
 =====================================-->
 
 <audio id="bgm" loop preload="auto" playsinline>
-    <source src="./bgm.mp3?v=6" type="audio/mpeg">
+    <source src="./bgm.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="tapSound" preload="auto" playsinline>
-    <source src="tap.mp3" type="audio/mpeg">
+    <source src="tap.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="bellSound" preload="auto" playsinline>
-    <source src="bell.mp3" type="audio/mpeg">
+    <source src="bell.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="correctSound" preload="auto" playsinline>
-    <source src="correct.mp3" type="audio/mpeg">
+    <source src="correct.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="wrongSound" preload="auto" playsinline>
-    <source src="wrong.mp3" type="audio/mpeg">
+    <source src="wrong.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="repairSound" preload="auto" playsinline>
-    <source src="repair.mp3" type="audio/mpeg">
+    <source src="repair.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="coinSound" preload="auto" playsinline>
-    <source src="coin.mp3" type="audio/mpeg">
+    <source src="coin.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="titleBgm" loop preload="auto" playsinline>
-    <source src="./title.mp3?v=6" type="audio/mpeg">
+    <source src="./title.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="gaugeFullSound" preload="auto" playsinline>
-    <source src="gauge-full.mp3" type="audio/mpeg">
+    <source src="gauge-full.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <audio id="repairEndSound" preload="auto" playsinline>
-    <source src="repair-end.mp3" type="audio/mpeg">
+    <source src="repair-end.mp3?v=8" type="audio/mpeg">
 </audio>
 
 <noscript>このゲームを遊ぶにはJavaScriptを有効にしてください。</noscript>
@@ -306,9 +310,9 @@
     SCRIPTS
 =====================================-->
 
-<script src="./quiz.js?v=6"></script>
-<script src="./sound.js?v=6"></script>
-<script src="./game.js?v=6"></script>
+<script src="./quiz.js?v=8"></script>
+<script src="./sound.js?v=8"></script>
+<script src="./game.js?v=8"></script>
 
 </body>
 </html>
