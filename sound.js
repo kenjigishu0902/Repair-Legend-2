@@ -275,15 +275,16 @@
             initialize();
         }
 
-        if (!bgmAudio || muted) {
-            return false;
-        }
-
         if (titleBgmAudio && titleBgmAudio !== bgmAudio) {
             titleBgmAudio.pause();
+            resetAudioTime(titleBgmAudio);
         }
 
         currentBgmAudio = bgmAudio;
+
+        if (!bgmAudio || muted) {
+            return false;
+        }
         bgmAudio.loop = true;
         bgmAudio.muted = false;
 
@@ -321,6 +322,7 @@
 
         if (bgmAudio && target !== bgmAudio) {
             bgmAudio.pause();
+            resetAudioTime(bgmAudio);
         }
 
         currentBgmAudio = target;

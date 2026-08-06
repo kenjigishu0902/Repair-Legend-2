@@ -41,7 +41,7 @@
         // naturally on the question following four correct answers.
         repairEndGaugeGain: 25,
 
-        repairEndAnimationDuration: 3200,
+        repairEndAnimationDuration: 4000,
 
         correctGaugeGain: 20,
 
@@ -779,8 +779,6 @@
 
         }
 
-        injectRepairEndStyles();
-
         let panel =
             document.getElementById(
                 "repairEndPanel"
@@ -887,218 +885,6 @@
             );
 
         }
-
-    }
-
-
-    function injectRepairEndStyles() {
-
-        if (
-            document.getElementById(
-                "repairEndGameStyles"
-            )
-        ) {
-
-            return;
-
-        }
-
-        const style =
-            document.createElement("style");
-
-        style.id =
-            "repairEndGameStyles";
-
-        style.textContent = `
-            #customer.customer-large {
-                scale: 1.15;
-                transform-origin: 50% 100%;
-            }
-
-            .repair-end-panel {
-                width: min(100%, 360px);
-                margin: 10px auto 0;
-                padding: 10px;
-                border: 2px solid rgba(255, 179, 0, 0.78);
-                border-radius: 12px;
-                background: rgba(19, 14, 9, 0.9);
-                box-shadow: 0 0 16px rgba(255, 129, 0, 0.3);
-            }
-
-            .repair-end-heading {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 12px;
-                margin-bottom: 7px;
-                color: #ffe6a3;
-                font-weight: 800;
-                letter-spacing: 0.04em;
-            }
-
-            .repair-end-track {
-                height: 14px;
-                overflow: hidden;
-                border: 1px solid rgba(255,255,255,0.45);
-                border-radius: 999px;
-                background: rgba(0,0,0,0.6);
-            }
-
-            .repair-end-gauge {
-                width: 0%;
-                height: 100%;
-                border-radius: inherit;
-                background: linear-gradient(90deg, #ff7a00, #ffd400, #fff2a8);
-                box-shadow: 0 0 12px rgba(255, 180, 0, 0.8);
-                transition: width 280ms ease;
-            }
-
-            .repair-end-panel.ready {
-                animation: repairEndReadyPulse 900ms ease-in-out infinite alternate;
-            }
-
-            .repair-end-button {
-                width: 100%;
-                min-height: 48px;
-                margin-top: 9px;
-                border: 2px solid #fff0a0;
-                border-radius: 12px;
-                background: linear-gradient(180deg, #ff4d00, #b60000);
-                color: #fff;
-                font: inherit;
-                font-weight: 900;
-                letter-spacing: 0.06em;
-                text-shadow: 0 2px 0 rgba(0,0,0,0.55);
-                box-shadow: 0 0 18px rgba(255, 70, 0, 0.65);
-                cursor: pointer;
-                touch-action: manipulation;
-            }
-
-            .repair-end-button:disabled {
-                opacity: 0.55;
-                cursor: default;
-            }
-
-            .repair-end-button:not(:disabled) {
-                animation: repairEndButtonPulse 650ms ease-in-out infinite alternate;
-            }
-
-            .repair-end-effect {
-                position: absolute;
-                inset: 0;
-                z-index: 9999;
-                display: grid;
-                place-items: center;
-                overflow: hidden;
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            .repair-end-effect.show {
-                animation: repairEndOverlay 950ms ease-out both;
-            }
-
-            .repair-end-burst {
-                position: absolute;
-                width: 65vmax;
-                height: 65vmax;
-                border-radius: 50%;
-                background:
-                    radial-gradient(circle, rgba(255,255,210,0.98) 0 7%, rgba(255,190,0,0.95) 12%, rgba(255,55,0,0.82) 28%, rgba(135,0,0,0.35) 52%, transparent 70%);
-                transform: scale(0.05) rotate(0deg);
-            }
-
-            .repair-end-effect.show .repair-end-burst {
-                animation: repairEndBurst 950ms cubic-bezier(.18,.8,.2,1) both;
-            }
-
-            .repair-end-title {
-                position: relative;
-                z-index: 2;
-                padding: 16px 22px;
-                color: #fff6b0;
-                font-size: clamp(30px, 8vw, 72px);
-                font-weight: 1000;
-                letter-spacing: 0.08em;
-                text-align: center;
-                text-shadow:
-                    0 4px 0 #8c0000,
-                    0 0 12px #ff4600,
-                    0 0 28px #ffd400;
-                transform: scale(0.5) rotate(-4deg);
-            }
-
-            .repair-end-effect.show .repair-end-title {
-                animation: repairEndTitle 950ms cubic-bezier(.2,.9,.2,1) both;
-            }
-
-            #game.repair-end-active {
-                animation: repairEndGameFlash 950ms ease-out both;
-            }
-
-            #feni.repair-end {
-                animation: repairEndFeni 950ms cubic-bezier(.2,.8,.2,1) both;
-                filter: drop-shadow(0 0 18px #ff9d00);
-            }
-
-            @keyframes repairEndReadyPulse {
-                from { box-shadow: 0 0 12px rgba(255, 70, 0, 0.45); }
-                to { box-shadow: 0 0 28px rgba(255, 213, 0, 0.9); }
-            }
-
-            @keyframes repairEndButtonPulse {
-                from { transform: translateY(0) scale(1); }
-                to { transform: translateY(-2px) scale(1.025); }
-            }
-
-            @keyframes repairEndOverlay {
-                0% { opacity: 0; background: rgba(0,0,0,0); }
-                12% { opacity: 1; background: rgba(25,0,0,0.42); }
-                75% { opacity: 1; }
-                100% { opacity: 0; background: rgba(0,0,0,0); }
-            }
-
-            @keyframes repairEndBurst {
-                0% { transform: scale(0.05) rotate(0deg); opacity: 0; }
-                28% { opacity: 1; }
-                100% { transform: scale(1.3) rotate(35deg); opacity: 0; }
-            }
-
-            @keyframes repairEndTitle {
-                0% { transform: scale(0.45) rotate(-5deg); opacity: 0; }
-                24% { transform: scale(1.12) rotate(1deg); opacity: 1; }
-                65% { transform: scale(1) rotate(0deg); opacity: 1; }
-                100% { transform: scale(1.2) rotate(2deg); opacity: 0; }
-            }
-
-            @keyframes repairEndGameFlash {
-                0%, 100% { filter: none; }
-                22% { filter: brightness(1.45) saturate(1.45); }
-                46% { filter: brightness(0.82) saturate(1.7); }
-            }
-
-            @keyframes repairEndFeni {
-                0% { transform: translateY(0) scale(1); }
-                30% { transform: translateY(-18px) scale(1.12); }
-                62% { transform: translateY(4px) scale(1.05); }
-                100% { transform: translateY(0) scale(1); }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                .repair-end-panel.ready,
-                .repair-end-button:not(:disabled),
-                .repair-end-effect.show,
-                .repair-end-effect.show .repair-end-burst,
-                .repair-end-effect.show .repair-end-title,
-                #game.repair-end-active,
-                #feni.repair-end {
-                    animation-duration: 1ms !important;
-                    animation-iteration-count: 1 !important;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
 
     }
 
@@ -2467,108 +2253,97 @@ showSpeech(
     async function handleRepairEndButton() {
 
         if (!canUseRepairEnd()) {
-
             return;
-
         }
 
-        gameState.repairEndActivating =
-            true;
-
+        gameState.repairEndActivating = true;
         gameState.answerLocked = true;
-
         gameState.repairEndGauge = 0;
-
         gameState.repairEndUses += 1;
-
         stopQuizTimer();
-
         disableAnswerButtons();
-
-        setPhase(
-            GAME_PHASE.REPAIR_END
-        );
-
+        setPhase(GAME_PHASE.REPAIR_END);
         updateRepairEndGauge();
 
-        await playRepairEndSequence();
+        const question = gameState.currentQuestion;
+        const correctIndex = question && question.correctIndex;
 
-        if (!gameState.currentQuestion) {
-
+        if (!question || !Number.isInteger(correctIndex)) {
+            finishRepairEndVisuals();
             gameState.answerLocked = false;
-
-            gameState.repairEndActivating =
-                false;
-
-            setPhase(
-                GAME_PHASE.QUIZ
-            );
-
+            gameState.repairEndActivating = false;
+            setPhase(GAME_PHASE.QUIZ);
             enableAnswerButtons();
-
             startQuizTimer();
-
             return;
-
         }
 
-        const correctIndex =
-            gameState.currentQuestion
-                .correctIndex;
-
-        gameState.answerLocked = false;
-
-        gameState.repairEndActivating =
-            false;
-
-        await processAnswer(
-            correctIndex,
-            false,
-            {
-                repairEnd: true
-            }
-        );
-
+        await playRepairEndSequence(correctIndex);
     }
 
 
-    async function playRepairEndSequence() {
+    async function playRepairEndSequence(correctIndex) {
 
-        dom.game.classList.add(
-            "repair-end-active"
-        );
+        const effect = dom.repairEndEffect;
+        dom.game.classList.add("repair-end-active");
+        effect.className = "repair-end-effect show stage-dark";
+        effect.setAttribute("aria-hidden", "false");
 
-        dom.feni.classList.add(
-            "repair-end"
-        );
-
-        restartEffectClass(
-            dom.repairEndEffect,
-            "show"
-        );
-
-        showSpeech(
-            "リペアエンド！！",
-            "feni"
-        );
-
+        await wait(400);
+        effect.classList.add("stage-fire");
         playRepairEndSound();
 
-        await wait(
-            GAME_CONFIG
-                .repairEndAnimationDuration
-        );
+        await wait(500);
+        effect.classList.add("stage-message");
 
-        dom.game.classList.remove(
-            "repair-end-active"
-        );
+        await wait(1100);
+        effect.classList.add("stage-slash");
+        playSlashSounds();
 
-        dom.feni.classList.remove(
-            "repair-end"
-        );
+        await wait(500);
+        effect.classList.add("stage-answers");
+        markRepairEndAnswers(correctIndex);
 
-        hideSpeech();
+        // Lock was acquired before the cinematic. Release it exactly once here so
+        // the regular answer pipeline remains the sole source of rewards/progress.
+        gameState.answerLocked = false;
+        gameState.repairEndActivating = false;
+        const answerPromise = processAnswer(correctIndex, false, { repairEnd: true });
 
+        await wait(700);
+        effect.classList.add("stage-result", "stage-fade");
+
+        await wait(800);
+        finishRepairEndVisuals();
+        await answerPromise;
+    }
+
+
+    function markRepairEndAnswers(correctIndex) {
+        dom.answerButtons.forEach(function (button, index) {
+            button.classList.add("repair-end-sliced");
+            button.classList.toggle("repair-end-target", index === correctIndex);
+            button.classList.toggle("repair-end-destroyed", index !== correctIndex);
+        });
+    }
+
+
+    function finishRepairEndVisuals() {
+        dom.game.classList.remove("repair-end-active");
+        dom.repairEndEffect.className = "repair-end-effect";
+        dom.repairEndEffect.setAttribute("aria-hidden", "true");
+        dom.answerButtons.forEach(function (button) {
+            button.classList.remove("repair-end-sliced", "repair-end-target", "repair-end-destroyed");
+        });
+    }
+
+
+    function playSlashSounds() {
+        if (!window.RepairLegendSound) {
+            return;
+        }
+        RepairLegendSound.playSound("repairEnd", { volumeMultiplier: 1, playbackRate: 1.35 });
+        RepairLegendSound.playSound("repair", { volumeMultiplier: 0.9, playbackRate: 1.65 });
     }
 
 
@@ -3178,7 +2953,7 @@ showSpeech(
        SPEECH
        ===================================================== */
 
-    function showSpeech(text, speaker = "customer") {
+    function showSpeech(text, speaker = "feni") {
 
     clearTimeout(
         gameState.speechTimeoutId
@@ -3237,7 +3012,7 @@ showSpeech(
         duration = 1200
     ) {
 
-        showSpeech(text);
+        showSpeech(text, "feni");
 
         gameState.speechTimeoutId =
             window.setTimeout(
@@ -3347,7 +3122,10 @@ showSpeech(
                 button.classList.remove(
                     "correct",
                     "wrong",
-                    "reveal"
+                    "reveal",
+                    "repair-end-sliced",
+                    "repair-end-target",
+                    "repair-end-destroyed"
                 );
 
                 button.disabled = false;
@@ -3403,9 +3181,7 @@ showSpeech(
 
     if (dom.repairEndEffect) {
 
-        dom.repairEndEffect.classList.remove(
-            "show"
-        );
+        finishRepairEndVisuals();
 
     }
 
