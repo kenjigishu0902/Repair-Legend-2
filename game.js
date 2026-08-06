@@ -1343,10 +1343,10 @@
 
         }
 
-       showSpeech(
-    "いらっしゃいませ！",
-    "feni"
-);
+        showSpeech(
+            "いらっしゃいませ！",
+            "feni"
+        );
 
 await wait(650);
 
@@ -1354,10 +1354,10 @@ if (!isCurrentSequence(currentSequence)) {
     return;
 }
 
-showSpeech(
-    gameState.currentCustomer.opening,
-    "customer"
-);
+        showSpeech(
+            formatCustomerRequest(gameState.currentCustomer),
+            "customer"
+        );
 
         await wait(
             GAME_CONFIG.receptionDelay
@@ -1373,6 +1373,14 @@ showSpeech(
 
         gameState.processing = false;
 
+    }
+
+    function formatCustomerRequest(customer) {
+        return [
+            `機種：${customer.category}端末`,
+            `症状：${customer.opening} ${customer.reception}`,
+            `希望：${customer.accepted}`
+        ].join("\n");
     }
 
 
@@ -1511,14 +1519,7 @@ showSpeech(
         hideReceptionWindow();
 
         showSpeech(
-            gameState.currentCustomer.accepted,
-            "customer"
-        );
-
-        await wait(1000);
-
-        showSpeech(
-            gameState.currentCustomer.repairing,
+            "受付しました。修理を開始します！",
             "feni"
         );
 
@@ -1527,13 +1528,6 @@ showSpeech(
         await wait(900);
 
         dom.feni.classList.remove("repairing");
-
-        showSpeech(
-            "この症状を疑おう！",
-            "feni"
-        );
-
-        await wait(700);
 
         hideSpeech();
 
@@ -2353,7 +2347,7 @@ showSpeech(
 
         const effect = dom.repairEndEffect;
         dom.game.classList.add("repair-end-active");
-        effect.className = "repair-end-effect show stage-dark";
+        effect.className = "repair-end-effect show stage-cutin";
         effect.setAttribute("aria-hidden", "false");
 
         // 0.0–0.8: full-screen Feni cut-in only.
