@@ -3903,3 +3903,140 @@ body { background: #030711; }
     #quizWindow { width: 94vw; }
     #customerArea { display: none; }
 }
+
+/* =========================================================
+   ARCADE INFERNO — black / gold / red final art direction
+   Kept at the end so legacy layouts cannot override it.
+   ========================================================= */
+:root {
+    --hud-height: 94px;
+    --arcade-black: #060303;
+    --arcade-red: #9d0b08;
+    --arcade-gold: #e7b53a;
+    --arcade-cream: #fff8e8;
+}
+
+body { background: #000; }
+#game {
+    background:
+        radial-gradient(ellipse at 50% 105%, rgba(255,55,0,.48), transparent 37%),
+        radial-gradient(circle at 50% 38%, #3a0b05 0, #100403 39%, #020101 76%);
+}
+#background {
+    background:
+        linear-gradient(110deg, transparent 0 49%, rgba(255,174,44,.05) 50%, transparent 51%),
+        radial-gradient(ellipse at 50% 105%, #8b1505 0, #250604 27%, #030101 68%);
+}
+#wall, #floor, #entrance, #counter { opacity: .22; filter: sepia(1) saturate(2) brightness(.38); }
+#background::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 5px, rgba(0,0,0,.13) 6px);
+    pointer-events: none;
+}
+
+#hud {
+    height: var(--hud-height);
+    gap: clamp(5px, 1vw, 13px);
+    padding: calc(9px + var(--safe-top)) max(12px, var(--safe-right)) 10px max(12px, var(--safe-left));
+    background: linear-gradient(#240503, #080101 62%, #000);
+    border-bottom: 3px solid #c58d25;
+    box-shadow: 0 4px 0 #4d0804, 0 12px 28px #000, inset 0 -8px 20px #000;
+}
+.hudBox {
+    min-height: 62px;
+    border: 2px solid #d6a53b;
+    border-radius: 7px;
+    background: linear-gradient(145deg, #3c0b07, #090101 55%, #230300);
+    box-shadow: inset 0 0 0 2px #4f2e0b, inset 0 4px 9px rgba(255,225,141,.14), 0 4px 0 #3b0201, 0 6px 12px #000;
+}
+.hudBox .label { color: #e9bd56; text-shadow: 0 2px 2px #000; }
+.hudBox > div:last-child, #rank, #combo, #money { color: #fff; text-shadow: 0 0 6px #ff7a00, 2px 3px 0 #000; }
+
+#game #repairPanel {
+    top: calc(var(--safe-top) + var(--hud-height) + 8px);
+    left: 50%; right: auto; bottom: auto;
+    width: min(96vw, 1120px);
+    min-height: 64px;
+    transform: translateX(-50%);
+    border: 2px solid #d1a03a;
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(52,8,4,.98), rgba(4,1,1,.98));
+    box-shadow: inset 0 0 16px #000, 0 7px 18px #000;
+}
+#game #repairPanel.show { transform: translateX(-50%); }
+.panelTitle, #game #repairPanel .repair-end-heading { color: #f1c45b; }
+#repairGaugeFrame, #game #repairPanel .repair-end-track { border-color: #8a5b16; background: #090202; }
+#repairGauge, #game #repairPanel .repair-end-gauge { background: linear-gradient(90deg, #7e0503, #ff3b0b 55%, #ffd66b); box-shadow: 0 0 12px #ff3b00; }
+#game #repairPanel .repair-end-button { min-height: 44px; color: #fff7d2; border-color: #ffd166; background: linear-gradient(#dc2d0b, #6f0502); text-shadow: 0 2px 2px #000, 0 0 8px #ffbf00; }
+
+#customerArea { top: calc(var(--safe-top) + 166px); left: 0; right: 0; bottom: 0; }
+#customer { left: auto; right: clamp(10px, 2.5vw, 42px); bottom: 1%; width: min(28vw, 330px); height: min(67vh, 650px); }
+#feni { left: clamp(8px, 3vw, 52px); bottom: 2%; width: min(15vw, 190px); }
+#speech { border: 4px solid #17100a; border-radius: 14px; background: var(--arcade-cream); box-shadow: inset 0 0 0 2px #d3a950, 7px 8px 0 rgba(0,0,0,.7); color: #090909; }
+#speech.speaker-customer { right: min(25vw, 300px); left: auto; top: 10%; width: min(30vw, 390px); }
+#speech.speaker-feni { left: min(15vw, 190px); right: auto; top: 35%; width: min(29vw, 380px); }
+#speechText { color: #090909; white-space: pre-line; }
+
+#quizWindow {
+    top: calc(var(--safe-top) + 174px); left: 50%; right: auto; bottom: 18px;
+    width: min(58vw, 760px); height: auto; max-height: calc(100dvh - 194px);
+    transform: translate(-50%, 30px); overflow: auto;
+    padding: clamp(10px, 1.4vw, 18px); border: 3px solid #e0b553; border-radius: 13px;
+    background: linear-gradient(145deg, #3a0805, #080101 60%, #210200);
+    box-shadow: inset 0 0 0 3px #5b310d, inset 0 0 30px #000, 0 13px 35px #000;
+}
+#quizWindow.show { transform: translate(-50%, 0); }
+#category { color: #fff; background: linear-gradient(#c22313,#5d0503); }
+#timerBox { color: #fff; background: #080101; }
+.question-card { background: linear-gradient(145deg, #fffef9, #f0e4c9); border: 3px solid #e0bd69; box-shadow: inset 0 0 18px #d5be8d, 0 5px 0 #4d1908; }
+.question-detail, .question-prompt { padding-block: 2px; }
+.question-detail span, .question-prompt span { color: #000 !important; font-weight: 900; }
+.question-detail strong, .question-prompt strong { color: #000 !important; font-weight: 700; }
+#quizWindow .answerBtn { min-height: 58px; border: 3px solid #bd8c31; background: linear-gradient(#fffefa,#e9dcc0); color: #000 !important; box-shadow: inset 0 2px #fff, 0 4px 0 #501006, 0 7px 10px #000; }
+#quizWindow .answerBtn::before { color: #000; border-color: #671008; background: #f3c85b; }
+#quizWindow .answerBtn:active:not(:disabled) { transform: translateY(3px); }
+
+/* The first stage must actually show the high-speed Feni cut-in. */
+.stage-cutin .repair-end-cutin { opacity: 1; animation: repairEndCutInFast 800ms cubic-bezier(.08,.9,.2,1) both; }
+.stage-cutin .repair-end-dark { opacity: .72; }
+.stage-cutin .repair-end-cutin::before {
+    content: "必殺技 発動!"; position: absolute; left: 4vw; top: 14%; color: #fff0a0;
+    font-size: clamp(25px,5vw,68px); font-weight: 900; font-style: italic;
+    text-shadow: 5px 5px #8b0900, 0 0 25px #ff5200;
+}
+.repair-end-slashes i { height: clamp(15px,2.2vw,34px); background: linear-gradient(90deg,transparent,#ff4500 10%,#fff 50%,#ff2500 90%,transparent); box-shadow: 0 0 12px #fff,0 0 32px #ff9700,0 0 75px #f00; }
+.repair-end-slashes i:first-child { top: 50%; transform: rotate(42deg) scaleX(0); }
+.repair-end-slashes i:nth-child(2) { top: 50%; transform: rotate(-42deg) scaleX(0); }
+.stage-slash .repair-end-slashes::after { content:""; position:absolute; inset:15%; border-radius:50%; border:clamp(12px,3vw,42px) solid rgba(255,190,60,.8); box-shadow:0 0 30px #fff,0 0 90px #ff3100; animation:impactWave 650ms ease-out both; }
+.answerBtn.repair-end-destroyed { background: #240000 !important; opacity: 0 !important; transform: rotate(14deg) scale(.15) translate(18vw,-8vh) !important; filter: brightness(3) sepia(1) saturate(8); box-shadow: 0 0 45px #ff2500 !important; }
+.repair-end-result { color:#ffe37d; -webkit-text-stroke:2px #7a0900; text-shadow:5px 7px 0 #620000,0 0 16px #fff,0 0 38px #ffb000,0 0 80px #f30; }
+@keyframes repairEndCutInFast { 0%{transform:translateX(-110vw) skewX(-18deg) scale(.7);filter:brightness(3)} 45%{transform:translateX(5vw) skewX(7deg) scale(1.12)} 100%{transform:translateX(0) scale(1)} }
+@keyframes impactWave { from{opacity:1;transform:scale(.05)} to{opacity:0;transform:scale(2.5)} }
+
+@media (max-width: 700px) {
+    :root { --hud-height: 132px; }
+    #hud { grid-template-columns: repeat(2,1fr); height: var(--hud-height); }
+    .hudBox { min-height: 49px; padding: 3px; }
+    #game #repairPanel { top: calc(var(--safe-top) + var(--hud-height) + 5px); grid-template-columns: auto 1fr auto; gap: 5px; padding: 5px 7px; }
+    #game #repairPanel .repair-end-panel { grid-column: 1 / -1; }
+    #customerArea { top: calc(var(--safe-top) + 205px); }
+    #quizWindow { top: calc(var(--safe-top) + 208px); bottom: 8px; width: 94vw; max-height: calc(100dvh - 216px); }
+    #customer { right: 0; width: 31vw; opacity: .42 !important; }
+    #feni { left: 0; width: 20vw; opacity: .5; }
+    #speech.speaker-customer, #speech.speaker-feni { top: 5%; left: 50%; right: auto; width: 88vw; transform: translate(-50%,10px) scale(.93); }
+    #speech.show { transform: translate(-50%,0) scale(1); }
+    #answers { grid-template-columns: 1fr; grid-template-rows: repeat(4,minmax(50px,auto)); }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    :root { --hud-height: 58px; }
+    #hud { grid-template-columns:repeat(4,1fr); padding-top:calc(4px + var(--safe-top)); padding-bottom:4px; }
+    .hudBox { min-height:42px; padding:2px; }
+    #game #repairPanel { top:calc(var(--safe-top) + 61px); min-height:48px; padding:3px 8px; }
+    #quizWindow { top:calc(var(--safe-top) + 115px); bottom:5px; width:min(66vw,760px); max-height:calc(100dvh - 120px); }
+    #customerArea { top:110px; }
+    #customer { width:22vw; }
+    #answers { grid-template-columns:1fr 1fr; }
+}
