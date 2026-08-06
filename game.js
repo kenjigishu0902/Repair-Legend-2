@@ -1422,6 +1422,8 @@
         }
 
         resetVisualState({
+    keepStartHidden: true
+});
         keepStartHidden: true
         });
 
