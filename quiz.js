@@ -1271,15 +1271,15 @@
         "category": "Switch",
         "difficulty": 2,
         "symptom": "基板修理前に重要な案内は？",
-        "question": [
+        "question": "基板修理前に重要な案内は？",
+        "choices": [
             "データ保証不可や預かり期間",
             "必ず即日",
             "必ず初期化不要",
             "必ず成功"
         ],
-        "choices": 0,
-        "correctIndex": "条件とリスクを説明します。",
-        "explanation": "基板修理の説明",
+        "correctIndex": 0,
+        "explanation": "条件とリスクを説明します。",
         "reward": 1000,
         "gaugeGain": 20
     },
@@ -1560,15 +1560,15 @@
         "category": "修理知識",
         "difficulty": 2,
         "symptom": "ESD対策とは？",
-        "question": [
+        "question": "適切な対策は？",
+        "choices": [
             "静電気による部品損傷を防ぐ対策",
             "防水対策",
             "音量調整",
             "通信設定"
         ],
-        "choices": 0,
-        "correctIndex": "基板やICを静電気から守ります。",
-        "explanation": "ESDの意味",
+        "correctIndex": 0,
+        "explanation": "基板やICを静電気から守ります。",
         "reward": 1000,
         "gaugeGain": 20
     },
@@ -1696,15 +1696,15 @@
         "category": "修理知識",
         "difficulty": 2,
         "symptom": "作業完了後に行うことは？",
-        "question": [
+        "question": "適切な確認は？",
+        "choices": [
             "修理箇所と基本機能の再確認",
             "すぐ渡すだけ",
             "データ削除",
             "設定変更"
         ],
-        "choices": 0,
-        "correctIndex": "修理後の総合確認が必要です。",
-        "explanation": "完了確認",
+        "correctIndex": 0,
+        "explanation": "修理後の総合確認が必要です。",
         "reward": 1000,
         "gaugeGain": 20
     }

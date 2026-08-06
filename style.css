@@ -3330,7 +3330,7 @@ img {
 
 /* ゲージはHUD直下へ固定し、キャラクターとクイズから離す */
 #game #repairPanel {
-    top: calc(var(--safe-top) + 82px);
+    top: calc(var(--safe-top) + var(--hud-height) + 18px);
     bottom: auto;
     z-index: 180;
 }
@@ -3387,6 +3387,13 @@ body[data-game-phase="repairEnd"] #feni {
     body[data-game-phase="repairEnd"] #feni {
         bottom: calc(var(--quiz-height) + var(--safe-bottom) + 15px);
         left: 20vw;
+    }
+}
+
+/* iPad portrait has a taller HUD; preserve a visible gap below it. */
+@media (min-width: 700px) and (min-height: 900px) {
+    #game #repairPanel {
+        top: calc(var(--safe-top) + var(--hud-height) + 26px);
     }
 }
 
