@@ -3432,21 +3432,38 @@ body[data-game-phase="repairEnd"] #feni {
 
 .question-detail span,
 .question-prompt span {
-    color: #ffd45c;
+    color: #111;
     white-space: nowrap;
 }
 
 .question-detail strong,
 .question-prompt strong {
     min-width: 0;
-    color: #fff;
+    color: #111;
     font: inherit;
     overflow-wrap: anywhere;
 }
 
 .question-prompt {
-    border-top: 2px solid rgba(255, 212, 92, .55);
+    border-top: 2px solid rgba(17, 17, 17, .45);
     padding-top: clamp(5px, 0.8vh, 9px);
+}
+
+/* Keep every quiz label legible on the light cards, including feedback states. */
+#quizWindow .answerBtn {
+    background: linear-gradient(to bottom, #fffdf7, #e9e5dc);
+    color: #111;
+}
+
+#quizWindow .answerBtn.correct,
+#quizWindow .answerBtn.reveal {
+    background: linear-gradient(to bottom, #fff17a, #ffc400);
+    color: #111;
+}
+
+#quizWindow .answerBtn.wrong {
+    background: linear-gradient(to bottom, #ffb2b2, #ef7777);
+    color: #111;
 }
 
 .repair-end-effect {
