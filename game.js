@@ -2336,6 +2336,8 @@ if (!isCurrentSequence(currentSequence)) {
             <div class="repair-end-cutin"><img src="./feni.png" class="repair-end-cutin-character" alt="" draggable="false"></div>
             <div class="repair-end-cutin-message">おいどんに直せない端末は無い！！</div>
             <div class="repair-end-slashes" aria-hidden="true"><i></i><i></i></div>
+            <div class="repair-end-impact" aria-hidden="true"></div>
+            <div class="repair-end-debris" aria-hidden="true"></div>
             <div class="repair-end-flash" aria-hidden="true"></div>
             <div class="repair-end-result">REPAIR END!!</div>`;
         document.body.appendChild(effect);
@@ -2365,12 +2367,12 @@ if (!isCurrentSequence(currentSequence)) {
         playSlashSounds();
         markRepairEndAnswers(correctIndex);
 
-        // 2.5–3.3: each wrong answer is cut away; the right answer remains.
-        await wait(800);
-        effect.classList.add("stage-result");
+        // 2.5–3.4: each wrong answer is cut away; the right answer remains.
+        await wait(900);
+        effect.className = "repair-end-effect show stage-dark stage-fire stage-slash stage-result";
 
-        // 3.3–4.0: the result appears, then the normal answer pipeline runs once.
-        await wait(700);
+        // 3.4–4.2: the result appears, then the normal answer pipeline runs once.
+        await wait(800);
         finishRepairEndVisuals();
         gameState.answerLocked = false;
         gameState.repairEndActivating = false;
@@ -2403,8 +2405,15 @@ if (!isCurrentSequence(currentSequence)) {
         if (!window.RepairLegendSound) {
             return;
         }
+        if (typeof RepairLegendSound.playRepairEndSlash === "function") {
+            RepairLegendSound.playRepairEndSlash(0);
+            window.setTimeout(function () { RepairLegendSound.playRepairEndSlash(1); }, 120);
+            return;
+        }
         RepairLegendSound.playSound("repairEnd", { volumeMultiplier: 1, playbackRate: 1.35 });
-        RepairLegendSound.playSound("repair", { volumeMultiplier: 0.9, playbackRate: 1.65 });
+        window.setTimeout(function () {
+            RepairLegendSound.playSound("repair", { volumeMultiplier: 0.9, playbackRate: 1.65 });
+        }, 120);
     }
 
 
