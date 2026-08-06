@@ -1,6 +1,6 @@
 Repair Legend Ver2 サウンド素材
 
-sounds フォルダ内:
+プロジェクト直下:
 - bgm.mp3
 - title.mp3
 - tap.mp3
@@ -12,7 +12,7 @@ sounds フォルダ内:
 - gauge-full.mp3
 - repair-end.mp3
 
-index.html では sounds/ 以下を指定してください。
+index.html では各ファイルをプロジェクト直下から指定してください。
 title用audio ID: titleBgm
 ゲージ満タン ID: gaugeFullSound
 必殺技 ID: repairEndSound

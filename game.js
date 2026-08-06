@@ -37,7 +37,9 @@
 
         repairEndGaugeMax: 100,
 
-        repairEndGaugeGain: 20,
+        // Fill before the normal repair gauge so the move can be activated
+        // naturally on the question following four correct answers.
+        repairEndGaugeGain: 25,
 
         repairEndAnimationDuration: 3200,
 

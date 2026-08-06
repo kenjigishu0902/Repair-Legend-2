@@ -757,7 +757,7 @@
         toggleMute,
         isMuted,
         getStatus
-    });　
+    });
 
     window.RepairLegendSound =
         RepairLegendSound;
