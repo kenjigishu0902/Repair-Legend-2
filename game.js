@@ -417,6 +417,14 @@
 
         question: null,
 
+        questionDevice: null,
+
+        questionSymptom: null,
+
+        questionRequest: null,
+
+        questionPrompt: null,
+
         answerButtons: [],
 
         repairPanel: null,
@@ -630,6 +638,8 @@
             startAudioFromUserGesture: function () {},
             playTitleBgm: function () {},
             playGameBgm: function () {},
+            switchToGameBgm: function () {},
+            switchToTitleBgm: function () {},
             playBgm: function () {},
             stopBgm: function () {},
             pauseBgm: function () {},
@@ -694,6 +704,11 @@
 
         dom.question =
             document.getElementById("question");
+
+        dom.questionDevice = document.getElementById("questionDevice");
+        dom.questionSymptom = document.getElementById("questionSymptom");
+        dom.questionRequest = document.getElementById("questionRequest");
+        dom.questionPrompt = document.getElementById("questionPrompt");
 
         dom.answerButtons =
             Array.from(
@@ -932,6 +947,14 @@
 
             dom.question,
 
+            dom.questionDevice,
+
+            dom.questionSymptom,
+
+            dom.questionRequest,
+
+            dom.questionPrompt,
+
             dom.repairPanel,
 
             dom.repairEndPanel,
@@ -1077,24 +1100,11 @@
 
             if (
                 window.RepairLegendSound &&
-                typeof RepairLegendSound.stopBgm ===
+                typeof RepairLegendSound.switchToGameBgm ===
                     "function"
             ) {
 
-                RepairLegendSound.stopBgm();
-
-            }
-
-            if (
-                window.RepairLegendSound &&
-                typeof RepairLegendSound.playGameBgm ===
-                    "function"
-            ) {
-
-                await RepairLegendSound.playGameBgm({
-                    restart: true,
-                    fadeIn: false
-                });
+                await RepairLegendSound.switchToGameBgm();
 
             } else if (
                 window.RepairLegendSound &&
@@ -1603,8 +1613,10 @@ showSpeech(
         dom.category.textContent =
             question.category;
 
-        dom.question.textContent =
-            question.question;
+        dom.questionDevice.textContent = question.device;
+        dom.questionSymptom.textContent = question.symptom;
+        dom.questionRequest.textContent = question.request;
+        dom.questionPrompt.textContent = question.question;
 
         dom.answerButtons.forEach(
             function (button, index) {
@@ -2278,7 +2290,31 @@ showSpeech(
             return;
         }
 
+        ensureRepairEndEffectElement();
         await playRepairEndSequence(correctIndex);
+    }
+
+
+    function ensureRepairEndEffectElement() {
+        if (dom.repairEndEffect && dom.repairEndEffect.isConnected) {
+            return;
+        }
+
+        const effect = document.createElement("div");
+        effect.id = "repairEndEffect";
+        effect.className = "repair-end-effect";
+        effect.setAttribute("aria-hidden", "true");
+        effect.innerHTML = `
+            <div class="repair-end-dark"></div>
+            <div class="repair-end-flames" aria-hidden="true"></div>
+            <div class="repair-end-embers" aria-hidden="true"></div>
+            <div class="repair-end-cutin"><img src="./feni.png" class="repair-end-cutin-character" alt="" draggable="false"></div>
+            <div class="repair-end-cutin-message">おいどんに直せない端末は無い！！</div>
+            <div class="repair-end-slashes" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="repair-end-flash" aria-hidden="true"></div>
+            <div class="repair-end-result">REPAIR END!!</div>`;
+        document.body.appendChild(effect);
+        dom.repairEndEffect = effect;
     }
 
 
@@ -2289,33 +2325,31 @@ showSpeech(
         effect.className = "repair-end-effect show stage-dark";
         effect.setAttribute("aria-hidden", "false");
 
-        await wait(400);
-        effect.classList.add("stage-fire");
+        // 0.0–0.8: full-screen Feni cut-in only.
+        await wait(800);
+        effect.className = "repair-end-effect show stage-dark stage-message";
+
+        // 0.8–1.5: hide Feni and reveal only the centred declaration.
+        await wait(700);
+        effect.className = "repair-end-effect show stage-dark stage-fire";
         playRepairEndSound();
 
-        await wait(500);
-        effect.classList.add("stage-message");
-
-        await wait(1100);
-        effect.classList.add("stage-slash");
+        // 1.5–2.5: viewport-filling inferno, shake and white flashes.
+        await wait(1000);
+        effect.className = "repair-end-effect show stage-dark stage-fire stage-slash";
         playSlashSounds();
-
-        await wait(500);
-        effect.classList.add("stage-answers");
         markRepairEndAnswers(correctIndex);
 
-        // Lock was acquired before the cinematic. Release it exactly once here so
-        // the regular answer pipeline remains the sole source of rewards/progress.
+        // 2.5–3.3: each wrong answer is cut away; the right answer remains.
+        await wait(800);
+        effect.classList.add("stage-result");
+
+        // 3.3–4.0: the result appears, then the normal answer pipeline runs once.
+        await wait(700);
+        finishRepairEndVisuals();
         gameState.answerLocked = false;
         gameState.repairEndActivating = false;
-        const answerPromise = processAnswer(correctIndex, false, { repairEnd: true });
-
-        await wait(700);
-        effect.classList.add("stage-result", "stage-fade");
-
-        await wait(800);
-        finishRepairEndVisuals();
-        await answerPromise;
+        await processAnswer(correctIndex, false, { repairEnd: true });
     }
 
 
@@ -2330,8 +2364,10 @@ showSpeech(
 
     function finishRepairEndVisuals() {
         dom.game.classList.remove("repair-end-active");
-        dom.repairEndEffect.className = "repair-end-effect";
-        dom.repairEndEffect.setAttribute("aria-hidden", "true");
+        if (dom.repairEndEffect) {
+            dom.repairEndEffect.remove();
+            dom.repairEndEffect = null;
+        }
         dom.answerButtons.forEach(function (button) {
             button.classList.remove("repair-end-sliced", "repair-end-target", "repair-end-destroyed");
         });
@@ -2464,8 +2500,8 @@ showSpeech(
         await wait(650);
 
         showSpeech(
-            gameState.currentCustomer.completed,
-            "customer"
+            "修理結果を確認して、次のお客様をお迎えしよう！",
+            "feni"
         );
 
         await wait(

@@ -845,6 +845,46 @@ img {
     overflow-wrap: anywhere;
 }
 
+/* Keep the speaker visually unambiguous: the bubble and its tail move to the
+   character selected by showSpeech(), rather than always pointing at customer. */
+#speech.speaker-feni {
+    left: clamp(18px, 13vw, 230px);
+    right: auto;
+    transform-origin: left bottom;
+}
+
+#speech.speaker-feni::before {
+    left: 29%;
+    right: auto;
+    border-right: 18px solid transparent;
+    border-left: 5px solid transparent;
+}
+
+#speech.speaker-feni::after {
+    left: calc(29% + 4px);
+    right: auto;
+    border-right: 12px solid transparent;
+    border-left: 3px solid transparent;
+}
+
+#speech.speaker-feni #speechText::before,
+#speech.speaker-customer #speechText::before {
+    display: block;
+    margin-bottom: 3px;
+    font-size: .72em;
+    font-weight: 900;
+}
+
+#speech.speaker-feni #speechText::before {
+    content: "フェニちゃん";
+    color: #b00000;
+}
+
+#speech.speaker-customer #speechText::before {
+    content: "お客様";
+    color: #173d70;
+}
+
 @keyframes speechPop {
     0% {
         transform: scale(0.7);
@@ -3416,6 +3456,46 @@ body[data-game-phase="repairEnd"] #feni {
 /* =========================================================
    REPAIR END — 4 SECOND FULL-VIEWPORT CINEMATIC
    ========================================================= */
+#question.question-card {
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(4px, 0.8vh, 9px);
+    text-align: left;
+}
+
+.question-detail,
+.question-prompt {
+    display: grid;
+    grid-template-columns: clamp(42px, 8vw, 68px) minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    min-width: 0;
+    padding: 5px 7px;
+    border: 2px solid #252525;
+    background: #fff;
+}
+
+.question-detail span,
+.question-prompt span {
+    color: #000;
+    white-space: nowrap;
+    font-weight: 900;
+}
+
+.question-detail strong,
+.question-prompt strong {
+    min-width: 0;
+    color: #000;
+    font: inherit;
+    overflow-wrap: anywhere;
+}
+
+.question-prompt {
+    border: 2px solid #252525;
+}
+
+
 .repair-end-effect {
     position: fixed !important;
     inset: 0;
@@ -3466,6 +3546,11 @@ body[data-game-phase="repairEnd"] #feni {
     animation: repairEndHeroZoom 900ms cubic-bezier(.12,.8,.18,1) both;
 }
 
+.stage-message .repair-end-cutin,
+.stage-fire .repair-end-cutin {
+    display: none;
+}
+
 .repair-end-cutin-character {
     width: min(78vw, 720px);
     height: min(92dvh, 860px);
@@ -3508,12 +3593,18 @@ body[data-game-phase="repairEnd"] #feni {
     left: 50%;
     top: 48%;
     z-index: 7;
-    width: min(94vw, 1100px);
+    width: auto;
+    max-width: 90vw;
     color: #fff;
-    font-size: clamp(26px, 5.4vw, 72px);
+    font-size: clamp(28px, 6vw, 72px);
     font-weight: 900;
-    line-height: 1.3;
+    line-height: 1.15;
     text-align: center;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    padding: 0 5vw;
+    box-sizing: border-box;
     text-shadow: 4px 4px 0 #750000, -2px -2px 0 #8c1700, 0 0 12px #fff, 0 0 32px #ffb000, 0 0 60px #e21b00;
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.7);
@@ -3532,11 +3623,12 @@ body[data-game-phase="repairEnd"] #feni {
     background: #fff;
     box-shadow: 0 0 9px #fff, 0 0 24px #d9f5ff, 0 0 48px #ffb000;
     opacity: 0;
-    transform: rotate(-19deg) scaleX(0);
+    --slash-angle: -34deg;
+    transform: rotate(var(--slash-angle)) scaleX(0);
 }
-.repair-end-slashes i:nth-child(2) { top: 38%; transform: rotate(-10deg) scaleX(0); }
-.repair-end-slashes i:nth-child(3) { top: 61%; transform: rotate(-27deg) scaleX(0); }
-.repair-end-slashes i:nth-child(4) { top: 49%; transform: rotate(13deg) scaleX(0); }
+.repair-end-slashes i:nth-child(2) { --slash-angle: 34deg; }
+.repair-end-slashes i:nth-child(3),
+.repair-end-slashes i:nth-child(4) { display: none; }
 .stage-slash .repair-end-slashes i { animation: repairEndBlade 460ms cubic-bezier(.05,.8,.1,1) both; }
 .stage-slash .repair-end-slashes i:nth-child(2) { animation-delay: 70ms; }
 .stage-slash .repair-end-slashes i:nth-child(3) { animation-delay: 140ms; }
@@ -3547,14 +3639,25 @@ body[data-game-phase="repairEnd"] #feni {
 
 .repair-end-result {
     z-index: 15;
-    display: grid;
-    place-items: center;
+    top: 50%;
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    width: 90vw;
+    max-width: 90vw;
+    padding: 0 5vw;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
     color: #fff8a0;
-    font-size: clamp(58px, 15vw, 170px);
+    font-size: clamp(28px, 6vw, 72px);
+    line-height: 1.15;
     font-weight: 900;
     text-shadow: 6px 6px 0 #8d0000, 0 0 30px #fff, 0 0 65px #ff3c00;
     opacity: 0;
-    transform: scale(2);
+    transform: translate(-50%, -50%) scale(2);
 }
 .stage-result .repair-end-result { animation: repairEndResult 650ms ease-out both; }
 .stage-fade .repair-end-flames,
@@ -3601,13 +3704,13 @@ body[data-game-phase="repairEnd"] #quizWindow { pointer-events: none; }
     65%, 100% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1); }
 }
 @keyframes repairEndBlade {
-    0% { opacity: 0; transform: rotate(-19deg) scaleX(0); }
+    0% { opacity: 0; transform: rotate(var(--slash-angle)) scaleX(0); }
     18% { opacity: 1; }
-    65% { opacity: 1; transform: rotate(-19deg) scaleX(1); }
-    100% { opacity: 0; transform: rotate(-19deg) scaleX(1.1); }
+    65% { opacity: 1; transform: rotate(var(--slash-angle)) scaleX(1); }
+    100% { opacity: 0; transform: rotate(var(--slash-angle)) scaleX(1.1); }
 }
 @keyframes repairEndWhiteFlash { 0%,100% { opacity: 0; } 28% { opacity: 1; } 55% { opacity: .4; } }
-@keyframes repairEndResult { 0% { opacity: 0; transform: scale(2); } 45%,100% { opacity: 1; transform: scale(1); } }
+@keyframes repairEndResult { 0% { opacity: 0; transform: translate(-50%, -50%) scale(2); } 45%,100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 @keyframes repairEndCorrectGlow { to { filter: brightness(1.5); transform: scale(1.14); } }
 @keyframes repairEndViolentShake {
     0%,100% { transform: translate(0); }
@@ -3618,5 +3721,4 @@ body[data-game-phase="repairEnd"] #quizWindow { pointer-events: none; }
 
 @media (min-width: 768px) and (max-width: 1366px) {
     .repair-end-cutin-character { width: min(70vw, 680px); height: 88dvh; }
-    .repair-end-cutin-message { font-size: clamp(38px, 5.2vw, 68px); }
 }

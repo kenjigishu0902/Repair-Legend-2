@@ -31,6 +31,11 @@
         REPAIR_END: "repairEndSound"
     });
 
+    const BGM_SOURCES = Object.freeze({
+        TITLE: "./title.mp3?v=7",
+        GAME: "./bgm.mp3?v=7"
+    });
+
     let initialized = false;
     let audioUnlocked = false;
     let muted = false;
@@ -172,6 +177,15 @@
         bgmAudio = getAudioElement(SOUND_IDS.BGM);
         titleBgmAudio = getAudioElement(SOUND_IDS.TITLE_BGM, false);
 
+        // Assign the URL to the audio element itself. This avoids Safari retaining
+        // a previously selected nested <source> when Pages deploys a new build.
+        if (bgmAudio) {
+            bgmAudio.src = BGM_SOURCES.GAME;
+        }
+        if (titleBgmAudio) {
+            titleBgmAudio.src = BGM_SOURCES.TITLE;
+        }
+
         soundElements.tap = getAudioElement(SOUND_IDS.TAP);
         soundElements.bell = getAudioElement(SOUND_IDS.BELL);
         soundElements.correct = getAudioElement(SOUND_IDS.CORRECT);
@@ -200,7 +214,8 @@
             audio.load();
         });
 
-        currentBgmAudio = titleBgmAudio || bgmAudio;
+        // The title and gameplay tracks are deliberately never interchangeable.
+        currentBgmAudio = titleBgmAudio;
 
         registerUnlockEvents();
         registerGlobalButtonSounds();
@@ -232,7 +247,7 @@
         resumeWebAudioContext();
         audioUnlocked = true;
 
-        const target = currentBgmAudio || titleBgmAudio || bgmAudio;
+        const target = currentBgmAudio || titleBgmAudio;
 
         if (!target || muted || !target.paused) {
             return;
@@ -314,7 +329,7 @@
             initialize();
         }
 
-        const target = titleBgmAudio || bgmAudio;
+        const target = titleBgmAudio;
 
         if (!target || muted) {
             return false;
@@ -353,6 +368,16 @@
 
     function playGameBgm(options = {}) {
         return playBgm(options);
+    }
+
+    async function switchToGameBgm() {
+        stopBgm();
+        return playBgm({ restart: true, fadeIn: false });
+    }
+
+    async function switchToTitleBgm() {
+        stopBgm();
+        return playTitleBgm({ restart: true, fadeIn: false });
     }
 
     function pauseBgm(fadeOut = false) {
@@ -737,6 +762,8 @@
         playBgm,
         playTitleBgm,
         playGameBgm,
+        switchToGameBgm,
+        switchToTitleBgm,
         pauseBgm,
         stopBgm,
         isBgmPlaying,
