@@ -524,6 +524,15 @@
         return playSound("repairEnd");
     }
 
+    // Two separately cloned transients keep the crossed blades audible even on
+    // mobile Safari, where replaying one HTMLAudioElement would restart it.
+    function playRepairEndSlash(blade = 0) {
+        return playSound(blade === 0 ? "repairEnd" : "repair", {
+            volumeMultiplier: blade === 0 ? 1 : 0.92,
+            playbackRate: blade === 0 ? 1.35 : 1.7
+        });
+    }
+
     function playCoin() {
         return playSound("coin", {
             volumeMultiplier: 0.88
@@ -749,6 +758,7 @@
         playRepairComplete,
         playGaugeFull,
         playRepairEnd,
+        playRepairEndSlash,
         playCoin,
         playComboCoin,
         stopAllSoundEffects,
