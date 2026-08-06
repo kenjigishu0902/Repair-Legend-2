@@ -1513,8 +1513,9 @@
         }
 
         showSpeech(
-            "いらっしゃいませ！"
-        );
+    "いらっしゃいませ！",
+    "feni"
+);
 
         await wait(650);
 
@@ -1525,8 +1526,9 @@
         }
 
         showSpeech(
-            gameState.currentCustomer.opening
-        );
+    gameState.currentCustomer.opening,
+    "customer"
+);
 
         await wait(
             GAME_CONFIG.receptionDelay
@@ -3168,7 +3170,22 @@
        SPEECH
        ===================================================== */
 
-    function showSpeech(text) {
+    function showSpeech(text, speaker = "feni") {
+
+    clearTimeout(gameState.speechTimeoutId);
+
+    dom.speechText.textContent = String(text || "");
+
+    dom.speech.classList.remove(
+        "feni",
+        "customer"
+    );
+
+    dom.speech.classList.add(speaker);
+
+    dom.speech.classList.add("show");
+
+}
 
         clearTimeout(
             gameState.speechTimeoutId
