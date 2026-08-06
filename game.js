@@ -39,7 +39,7 @@
 
         repairEndGaugeGain: 20,
 
-        repairEndAnimationDuration: 950,
+        repairEndAnimationDuration: 1750,
 
         correctGaugeGain: 20,
 
@@ -557,7 +557,9 @@
 
             registerEventListeners();
 
-            resetVisualState();
+            resetVisualState({
+            keepStartHidden: true
+            });
 
             updateHud();
 
@@ -1419,7 +1421,9 @@
 
         }
 
-        resetVisualState();
+        resetVisualState({
+        keepStartHidden: true
+        });
 
         updateHud();
 
