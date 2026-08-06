@@ -3321,56 +3321,63 @@
        VISUAL RESET
        ===================================================== */
 
-    function resetVisualState() {
+    function resetVisualState(options = {}) {
+
+    const keepStartHidden =
+        Boolean(options.keepStartHidden);
+
+    if (!keepStartHidden) {
 
         dom.startScreen.classList.remove(
             "hidden"
         );
 
-        hideReceptionWindow();
+    }
 
-        hideQuizWindow();
+    hideReceptionWindow();
 
-        hideResultWindow();
+    hideQuizWindow();
 
-        hideRepairPanel();
+    hideResultWindow();
 
-        hideSpeech();
+    hideRepairPanel();
 
-        clearAnswerStyles();
+    hideSpeech();
 
-        resetCharacterClasses();
+    clearAnswerStyles();
 
-        dom.repairGauge.style.width =
-            "0%";
+    resetCharacterClasses();
 
-        dom.repairPercent.textContent =
-            "0%";
+    dom.repairGauge.style.width =
+        "0%";
 
-        updateRepairEndGauge();
+    dom.repairPercent.textContent =
+        "0%";
 
-        dom.game.classList.remove(
-            "repair-end-active"
-        );
+    updateRepairEndGauge();
 
-        if (dom.repairEndEffect) {
+    dom.game.classList.remove(
+        "repair-end-active"
+    );
 
-            dom.repairEndEffect.classList.remove(
-                "show"
-            );
+    if (dom.repairEndEffect) {
 
-        }
-
-        dom.timer.textContent =
-            String(
-                GAME_CONFIG.quizTimeLimit
-            );
-
-        dom.timer.classList.remove(
-            "warning"
+        dom.repairEndEffect.classList.remove(
+            "show"
         );
 
     }
+
+    dom.timer.textContent =
+        String(
+            GAME_CONFIG.quizTimeLimit
+        );
+
+    dom.timer.classList.remove(
+        "warning"
+    );
+
+}
 
 
     function resetCharacterClasses() {
