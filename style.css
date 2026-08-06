@@ -4620,3 +4620,128 @@ body[data-game-phase="repairEnd"] #feni {
     #feni { width:min(15vw,125px); height:calc(100dvh - var(--gameplay-top)); }
     #customer { width:min(16vw,145px); height:calc(100dvh - var(--gameplay-top)); }
 }
+
+/* =========================================================
+   IOS SAFARI VIEWPORT / CHARACTER SAFETY
+
+   Safari's visible viewport can be shorter than an earlier 100vh layout
+   while its address bar is shown.  Do not combine a viewport height with a
+   larger minimum height: body overflow would make the bottom character rail
+   unreachable.  The final rules also keep both sprites in safe-area-aware,
+   bounded rails instead of moving the resting positions with translate().
+   ========================================================= */
+
+html,
+body {
+    height: 100%;
+    min-height: 0;
+}
+
+body,
+#game {
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 0;
+}
+
+#customerArea {
+    left: var(--safe-left);
+    right: var(--safe-right);
+    max-width: calc(100% - var(--safe-left) - var(--safe-right));
+    overflow: visible;
+}
+
+#feni,
+#customer {
+    box-sizing: border-box;
+    max-width: calc(50vw - var(--safe-left) - 8px);
+    max-height: 100%;
+}
+
+#feniSprite,
+#customerSprite {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+}
+
+/* iPhone portrait: reserve a visible rail below the quiz for both sprites. */
+@media (max-width: 699px) and (orientation: portrait) {
+    :root {
+        --character-rail: clamp(64px, 12svh, 92px);
+        --gameplay-bottom: max(
+            calc(var(--safe-bottom) + var(--character-rail) + 4px),
+            calc(var(--character-rail) + 4px)
+        );
+    }
+
+    #customerArea {
+        inset: auto var(--safe-right) var(--safe-bottom) var(--safe-left);
+        width: auto;
+        height: var(--character-rail);
+        overflow: visible;
+        z-index: 210;
+    }
+
+    #feni,
+    #customer {
+        top: auto;
+        bottom: 0;
+        width: clamp(50px, 15vw, 76px);
+        height: 100%;
+    }
+
+    #feni {
+        left: clamp(4px, 8vw, 38px);
+    }
+
+    #customer {
+        right: clamp(4px, 8vw, 38px);
+    }
+}
+
+/* iPhone landscape: clamp sprites to the side columns and safe-area edges. */
+@media (orientation: landscape) and (max-height: 600px) {
+    #customerArea {
+        inset: var(--gameplay-top) var(--safe-right) var(--gameplay-bottom) var(--safe-left);
+        width: auto;
+        height: auto;
+        overflow: visible;
+    }
+
+    #feni,
+    #customer {
+        bottom: 0;
+        width: clamp(58px, 13vw, 125px);
+        height: 100%;
+        max-width: 16vw;
+    }
+
+    #feni { left: 2px; }
+    #customer { right: 2px; }
+}
+
+/* iPad portrait and landscape: the card owns the centre; sprites stay inside
+   the safe side gutters and automatically shrink on a compact viewport. */
+@media (min-width: 700px) {
+    #customerArea {
+        inset: var(--gameplay-top) var(--safe-right) var(--gameplay-bottom) var(--safe-left);
+        width: auto;
+        height: auto;
+    }
+
+    #feni,
+    #customer {
+        bottom: 0;
+        width: clamp(86px, 15vw, 190px);
+        height: 100%;
+        max-width: 18vw;
+    }
+
+    #feni { left: clamp(4px, 2vw, 28px); }
+    #customer { right: clamp(4px, 2vw, 28px); }
+}

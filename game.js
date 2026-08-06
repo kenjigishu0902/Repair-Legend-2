@@ -7,7 +7,7 @@
    ・お客様来店
    ・吹き出し会話
    ・受付
-   ・10秒カウントダウン
+   ・30秒カウントダウン
    ・4択クイズ
    ・修理ゲージ
    ・コンボ
@@ -31,7 +31,7 @@
 
     const GAME_CONFIG = Object.freeze({
 
-        quizTimeLimit: 10,
+        quizTimeLimit: 30,
 
         repairGaugeMax: 100,
 
@@ -1641,7 +1641,11 @@ if (!isCurrentSequence(currentSequence)) {
         dom.questionDevice.textContent = question.device;
         dom.questionSymptom.textContent = question.symptom;
         dom.questionRequest.textContent = question.request;
-        dom.questionPrompt.textContent = question.question;
+        // A short prompt such as "理由は？" is ambiguous when it is read on its
+        // own. Repeat the concrete symptom in the prompt so the question remains
+        // understandable on every screen size and for screen-reader users.
+        dom.questionPrompt.textContent =
+            `「${question.symptom}」の場合、${question.question}`;
 
         dom.answerButtons.forEach(
             function (button, index) {
