@@ -3412,3 +3412,211 @@ body[data-game-phase="repairEnd"] #feni {
         bottom: calc(var(--quiz-height) + var(--safe-bottom) + 4px);
     }
 }
+
+/* =========================================================
+   REPAIR END — 4 SECOND FULL-VIEWPORT CINEMATIC
+   ========================================================= */
+.repair-end-effect {
+    position: fixed !important;
+    inset: 0;
+    z-index: 30000 !important;
+    display: block;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    isolation: isolate;
+}
+
+.repair-end-effect.show {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.repair-end-dark,
+.repair-end-flames,
+.repair-end-embers,
+.repair-end-cutin,
+.repair-end-slashes,
+.repair-end-flash,
+.repair-end-result {
+    position: absolute;
+    inset: 0;
+}
+
+.repair-end-dark {
+    z-index: 1;
+    background: #030000;
+    opacity: 0;
+    transition: opacity 180ms ease-out;
+}
+
+.stage-dark .repair-end-dark { opacity: .94; }
+
+.repair-end-cutin {
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+}
+
+.stage-dark .repair-end-cutin {
+    opacity: 1;
+    animation: repairEndHeroZoom 900ms cubic-bezier(.12,.8,.18,1) both;
+}
+
+.repair-end-cutin-character {
+    width: min(78vw, 720px);
+    height: min(92dvh, 860px);
+    object-fit: contain;
+    filter: drop-shadow(0 0 24px #ff6a00) drop-shadow(0 16px 8px #000);
+}
+
+.repair-end-flames {
+    z-index: 4;
+    inset: -15% -10% -20%;
+    opacity: 0;
+    background:
+        radial-gradient(ellipse at 8% 100%, #fff36a 0 3%, #ff8100 5% 12%, #c91500 18%, transparent 31%),
+        radial-gradient(ellipse at 30% 105%, #fff36a 0 5%, #ff7200 9% 19%, #b90900 27%, transparent 39%),
+        radial-gradient(ellipse at 53% 100%, #fff8a0 0 4%, #ff9800 8% 20%, #d31800 29%, transparent 43%),
+        radial-gradient(ellipse at 76% 108%, #fff36a 0 6%, #ff6400 11% 22%, #a90000 31%, transparent 43%),
+        radial-gradient(ellipse at 96% 100%, #fff36a 0 4%, #ff8b00 9% 17%, #c51400 25%, transparent 38%),
+        linear-gradient(to top, rgba(190,0,0,.9), transparent 70%);
+    background-size: 42% 110%, 48% 125%, 50% 120%, 46% 130%, 40% 115%, 100% 100%;
+    mix-blend-mode: screen;
+}
+
+.stage-fire .repair-end-flames {
+    opacity: .92;
+    animation: repairEndInferno 320ms ease-in-out infinite alternate;
+}
+
+.repair-end-embers {
+    z-index: 5;
+    opacity: 0;
+    background-image:
+        radial-gradient(circle, #fff8a0 0 2px, transparent 3px),
+        radial-gradient(circle, #ff7a00 0 3px, transparent 4px);
+    background-size: 57px 83px, 91px 67px;
+}
+.stage-fire .repair-end-embers { opacity: .9; animation: repairEndEmbers 700ms linear infinite; }
+
+.repair-end-cutin-message {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    z-index: 7;
+    width: min(94vw, 1100px);
+    color: #fff;
+    font-size: clamp(26px, 5.4vw, 72px);
+    font-weight: 900;
+    line-height: 1.3;
+    text-align: center;
+    text-shadow: 4px 4px 0 #750000, -2px -2px 0 #8c1700, 0 0 12px #fff, 0 0 32px #ffb000, 0 0 60px #e21b00;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.7);
+}
+.stage-message .repair-end-cutin-message {
+    animation: repairEndWords 700ms steps(7, end) both;
+}
+
+.repair-end-slashes { z-index: 12; pointer-events: none; }
+.repair-end-slashes i {
+    position: absolute;
+    left: -20vw;
+    top: 50%;
+    width: 145vw;
+    height: clamp(5px, 1vw, 13px);
+    background: #fff;
+    box-shadow: 0 0 9px #fff, 0 0 24px #d9f5ff, 0 0 48px #ffb000;
+    opacity: 0;
+    transform: rotate(-19deg) scaleX(0);
+}
+.repair-end-slashes i:nth-child(2) { top: 38%; transform: rotate(-10deg) scaleX(0); }
+.repair-end-slashes i:nth-child(3) { top: 61%; transform: rotate(-27deg) scaleX(0); }
+.repair-end-slashes i:nth-child(4) { top: 49%; transform: rotate(13deg) scaleX(0); }
+.stage-slash .repair-end-slashes i { animation: repairEndBlade 460ms cubic-bezier(.05,.8,.1,1) both; }
+.stage-slash .repair-end-slashes i:nth-child(2) { animation-delay: 70ms; }
+.stage-slash .repair-end-slashes i:nth-child(3) { animation-delay: 140ms; }
+.stage-slash .repair-end-slashes i:nth-child(4) { animation-delay: 210ms; }
+
+.repair-end-flash { z-index: 14; background: #fff; opacity: 0; pointer-events: none; }
+.stage-slash .repair-end-flash { animation: repairEndWhiteFlash 420ms steps(2,end) both; }
+
+.repair-end-result {
+    z-index: 15;
+    display: grid;
+    place-items: center;
+    color: #fff8a0;
+    font-size: clamp(58px, 15vw, 170px);
+    font-weight: 900;
+    text-shadow: 6px 6px 0 #8d0000, 0 0 30px #fff, 0 0 65px #ff3c00;
+    opacity: 0;
+    transform: scale(2);
+}
+.stage-result .repair-end-result { animation: repairEndResult 650ms ease-out both; }
+.stage-fade .repair-end-flames,
+.stage-fade .repair-end-embers,
+.stage-fade .repair-end-cutin,
+.stage-fade .repair-end-cutin-message,
+.stage-fade .repair-end-slashes { transition: opacity 700ms ease; opacity: 0; }
+
+body[data-game-phase="repairEnd"] #quizWindow { pointer-events: none; }
+.answerBtn.repair-end-sliced {
+    position: relative;
+    z-index: 30001;
+    transition: opacity 380ms ease, transform 380ms ease, filter 380ms ease;
+}
+.answerBtn.repair-end-destroyed {
+    opacity: .12 !important;
+    transform: rotate(var(--slice-angle, -3deg)) scale(.72) translateX(8vw);
+    filter: grayscale(1) brightness(.25);
+}
+.answerBtn.repair-end-target {
+    opacity: 1 !important;
+    transform: scale(1.09);
+    color: #fff !important;
+    border-color: #fff8a0 !important;
+    background: linear-gradient(135deg, #ffb000, #d22300) !important;
+    box-shadow: 0 0 16px #fff, 0 0 38px #ffd000, 0 0 70px #ff3700 !important;
+    animation: repairEndCorrectGlow 380ms ease-in-out infinite alternate;
+}
+
+#game.repair-end-active { animation: repairEndViolentShake 150ms linear infinite !important; }
+
+@keyframes repairEndHeroZoom {
+    0% { opacity: 0; transform: scale(.35); }
+    55% { opacity: 1; transform: scale(1.16); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes repairEndInferno {
+    from { transform: translate3d(-2%, 5%, 0) scale(1.06); filter: saturate(1.25); }
+    to { transform: translate3d(2%, -5%, 0) scale(1.15); filter: saturate(1.8) brightness(1.15); }
+}
+@keyframes repairEndEmbers { to { background-position: 25px -166px, -35px -134px; } }
+@keyframes repairEndWords {
+    0% { opacity: 0; filter: blur(16px); transform: translate(-50%, -50%) scale(1.7); }
+    65%, 100% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes repairEndBlade {
+    0% { opacity: 0; transform: rotate(-19deg) scaleX(0); }
+    18% { opacity: 1; }
+    65% { opacity: 1; transform: rotate(-19deg) scaleX(1); }
+    100% { opacity: 0; transform: rotate(-19deg) scaleX(1.1); }
+}
+@keyframes repairEndWhiteFlash { 0%,100% { opacity: 0; } 28% { opacity: 1; } 55% { opacity: .4; } }
+@keyframes repairEndResult { 0% { opacity: 0; transform: scale(2); } 45%,100% { opacity: 1; transform: scale(1); } }
+@keyframes repairEndCorrectGlow { to { filter: brightness(1.5); transform: scale(1.14); } }
+@keyframes repairEndViolentShake {
+    0%,100% { transform: translate(0); }
+    25% { transform: translate(-10px, 7px) rotate(-.4deg); }
+    50% { transform: translate(9px, -8px) rotate(.5deg); }
+    75% { transform: translate(-7px, -4px); }
+}
+
+@media (min-width: 768px) and (max-width: 1366px) {
+    .repair-end-cutin-character { width: min(70vw, 680px); height: 88dvh; }
+    .repair-end-cutin-message { font-size: clamp(38px, 5.2vw, 68px); }
+}

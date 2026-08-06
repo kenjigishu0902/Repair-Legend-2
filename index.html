@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./style.css?v=8">
+    <link rel="stylesheet" href="./style.css?v=9">
 </head>
 
 <body>
@@ -86,7 +86,7 @@
                 draggable="false">
         </div>
 
-        <div id="speech" role="status" aria-live="polite" aria-atomic="true">
+        <div id="speech" class="speaker-feni" data-speaker="feni" role="status" aria-live="polite" aria-atomic="true">
             <div id="speechText">いらっしゃいませ！</div>
         </div>
     </section>
@@ -140,38 +140,20 @@
         <div id="completeEffect">修理完了！</div>
     </div>
 
-    <div
-    id="repairEndEffect"
-    class="repair-end-effect"
-    aria-hidden="true">
-
-    <div class="repair-end-dark"></div>
-    <div class="repair-end-speed-lines"></div>
-
-    <div class="repair-end-cutin">
-        <div class="repair-end-cutin-bg"></div>
-
-        <img
-            src="./feni.png"
-            class="repair-end-cutin-character"
-            alt=""
-            draggable="false">
-
-        <div class="repair-end-cutin-message">
-            修理不能？<br>
-            その言葉は俺には通用しない。
+    <div id="repairEndEffect" class="repair-end-effect" aria-hidden="true">
+        <div class="repair-end-dark"></div>
+        <div class="repair-end-flames" aria-hidden="true"></div>
+        <div class="repair-end-embers" aria-hidden="true"></div>
+        <div class="repair-end-cutin">
+            <img src="./feni.png" class="repair-end-cutin-character" alt="" draggable="false">
         </div>
+        <div class="repair-end-cutin-message">おいどんに直せない物はない……！</div>
+        <div class="repair-end-slashes" aria-hidden="true">
+            <i></i><i></i><i></i><i></i>
+        </div>
+        <div class="repair-end-flash" aria-hidden="true"></div>
+        <div class="repair-end-result">正解！</div>
     </div>
-
-    <div class="repair-end-slash"></div>
-
-    <div class="repair-end-title-wrap">
-        <div class="repair-end-subtitle">PHOENIX SPECIAL ATTACK</div>
-        <div class="repair-end-title">リペアエンド！！</div>
-    </div>
-
-    <div class="repair-end-flash"></div>
-</div>
 
     <!--========================
         TOUCH MAP
@@ -274,7 +256,7 @@
 =====================================-->
 
 <audio id="bgm" loop preload="auto" playsinline>
-    <source src="bgm.mp3" type="audio/mpeg">
+    <source src="./bgm.mp3?v=3" type="audio/mpeg">
 </audio>
 
 <audio id="tapSound" preload="auto" playsinline>
@@ -302,7 +284,7 @@
 </audio>
 
 <audio id="titleBgm" loop preload="auto" playsinline>
-    <source src="title.mp3" type="audio/mpeg">
+    <source src="./title.mp3?v=3" type="audio/mpeg">
 </audio>
 
 <audio id="gaugeFullSound" preload="auto" playsinline>
@@ -319,9 +301,9 @@
     SCRIPTS
 =====================================-->
 
-<script src="./quiz.js?v=8"></script>
-<script src="./sound.js?v=8"></script>
-<script src="./game.js?v=8"></script>
+<script src="./quiz.js?v=9"></script>
+<script src="./sound.js?v=9"></script>
+<script src="./game.js?v=9"></script>
 
 </body>
 </html>
