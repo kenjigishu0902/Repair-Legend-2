@@ -1512,20 +1512,18 @@
 
         }
 
-        showSpeech(
+       showSpeech(
     "いらっしゃいませ！",
     "feni"
 );
 
-        await wait(650);
+await wait(650);
 
-        if (!isCurrentSequence(currentSequence)) {
+if (!isCurrentSequence(currentSequence)) {
+    return;
+}
 
-            return;
-
-        }
-
-        showSpeech(
+showSpeech(
     gameState.currentCustomer.opening,
     "customer"
 );
@@ -3170,35 +3168,45 @@
        SPEECH
        ===================================================== */
 
-    function showSpeech(text, speaker = "feni") {
+    function showSpeech(text, speaker = "customer") {
 
-    clearTimeout(gameState.speechTimeoutId);
-
-    dom.speechText.textContent = String(text || "");
-
-    dom.speech.classList.remove(
-        "feni",
-        "customer"
+    clearTimeout(
+        gameState.speechTimeoutId
     );
 
-    dom.speech.classList.add(speaker);
+    dom.speechText.textContent =
+        String(text || "");
 
-    dom.speech.classList.add("show");
+    dom.speech.classList.remove(
+        "speaker-feni",
+        "speaker-customer"
+    );
 
-}
-
-        clearTimeout(
-            gameState.speechTimeoutId
-        );
-
-        dom.speechText.textContent =
-            String(text || "");
+    if (speaker === "feni") {
 
         dom.speech.classList.add(
-            "show"
+            "speaker-feni"
         );
 
+        dom.speech.dataset.speaker =
+            "feni";
+
+    } else {
+
+        dom.speech.classList.add(
+            "speaker-customer"
+        );
+
+        dom.speech.dataset.speaker =
+            "customer";
+
     }
+
+    dom.speech.classList.add(
+        "show"
+    );
+
+}
 
 
     function hideSpeech() {
