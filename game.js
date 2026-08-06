@@ -469,6 +469,8 @@
 
         nextCustomer: null,
 
+        returnTitle: null,
+
         touchSpots: []
 
     };
@@ -776,6 +778,9 @@
         dom.nextCustomer =
             document.getElementById("nextCustomer");
 
+        dom.returnTitle =
+            document.getElementById("returnTitle");
+
         dom.touchSpots =
             Array.from(
                 document.querySelectorAll(".touchSpot")
@@ -1031,6 +1036,21 @@
             "click",
             handleNextCustomerButton
         );
+
+        if (dom.returnTitle) {
+            dom.returnTitle.addEventListener("click", returnToTitle);
+        }
+
+        document.querySelectorAll("[data-title-menu]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const labels = {
+                    settings: "設定は端末の音量ボタンとサイレント設定をご利用ください。",
+                    ranking: "ランキング機能は準備中です。",
+                    collection: "図鑑機能は準備中です。"
+                };
+                alert(labels[button.dataset.titleMenu] || "準備中です。");
+            });
+        });
 
         dom.repairEndButton.addEventListener(
             "click",
@@ -2321,7 +2341,7 @@ showSpeech(
             <div class="repair-end-embers" aria-hidden="true"></div>
             <div class="repair-end-cutin"><img src="./feni.png" class="repair-end-cutin-character" alt="" draggable="false"></div>
             <div class="repair-end-cutin-message">おいどんに直せない端末は無い！！</div>
-            <div class="repair-end-slashes" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <div class="repair-end-slashes" aria-hidden="true"><i></i><i></i></div>
             <div class="repair-end-flash" aria-hidden="true"></div>
             <div class="repair-end-result">REPAIR END!!</div>`;
         document.body.appendChild(effect);
@@ -2624,6 +2644,21 @@ showSpeech(
 
         startNextCustomer();
 
+    }
+
+    async function returnToTitle() {
+        gameState.sequenceId += 1;
+        gameState.started = false;
+        gameState.processing = false;
+        gameState.answerLocked = false;
+        stopQuizTimer();
+        resetVisualState({ keepStartHidden: false });
+        setPhase(GAME_PHASE.TITLE);
+
+        if (window.RepairLegendSound) {
+            RepairLegendSound.stopBgm();
+            await RepairLegendSound.playTitleBgm({ restart: true, fadeIn: false });
+        }
     }
 
 
